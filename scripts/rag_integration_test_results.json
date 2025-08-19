@@ -1,0 +1,618 @@
+[
+  {
+    "test_case": {
+      "query": "I'm in Jersey City and craving Italian food",
+      "type": "location_cuisine",
+      "expected_intent": "location_cuisine",
+      "expected_location": "Jersey City",
+      "expected_cuisine": "Italian"
+    },
+    "success": true,
+    "pipeline_steps": {
+      "query_parsing": {
+        "success": true,
+        "parsed_query": {
+          "location": "Jersey City",
+          "restaurant_name": null,
+          "cuisine_type": "Italian",
+          "dish_name": null,
+          "meal_type": null,
+          "price_range": null,
+          "dietary_restrictions": [],
+          "restaurant_features": [],
+          "time_preference": null,
+          "party_size": null,
+          "intent": "location_cuisine",
+          "confidence": {
+            "location": 0.9,
+            "restaurant_name": null,
+            "cuisine_type": 0.9,
+            "dish_name": null,
+            "meal_type": null,
+            "price_range": null,
+            "dietary_restrictions": null,
+            "restaurant_features": null,
+            "time_preference": null,
+            "party_size": null,
+            "overall": 0.9
+          }
+        },
+        "intent": "location_cuisine",
+        "confidence": 0.9
+      },
+      "retrieval": {
+        "success": true,
+        "recommendations_count": 7,
+        "fallback_used": false,
+        "fallback_reason": null,
+        "recommendations": [
+          {
+            "type": "dish",
+            "dish_name": "gnocchi pasta",
+            "restaurant_name": "Porta",
+            "restaurant_id": "ChIJM6W1O7JQwokRkvWuopT4lpY",
+            "cuisine_type": "Italian",
+            "location": "Jersey City",
+            "sentiment_score": 0.6000000238418579,
+            "recommendation_score": 0.800000011920929,
+            "restaurant_rating": 4.099999904632568,
+            "confidence": 0.5
+          },
+          {
+            "type": "dish",
+            "dish_name": "meatball pizza",
+            "restaurant_name": "Porta",
+            "restaurant_id": "ChIJM6W1O7JQwokRkvWuopT4lpY",
+            "cuisine_type": "Italian",
+            "location": "Jersey City",
+            "sentiment_score": 0.8999999761581421,
+            "recommendation_score": 0.800000011920929,
+            "restaurant_rating": 4.099999904632568,
+            "confidence": 0.5
+          },
+          {
+            "type": "dish",
+            "dish_name": "Betty Pie",
+            "restaurant_name": "Porta",
+            "restaurant_id": "ChIJM6W1O7JQwokRkvWuopT4lpY",
+            "cuisine_type": "Italian",
+            "location": "Jersey City",
+            "sentiment_score": 0.8999999761581421,
+            "recommendation_score": 0.800000011920929,
+            "restaurant_rating": 4.099999904632568,
+            "confidence": 0.5
+          }
+        ]
+      },
+      "response_generation": {
+        "success": true,
+        "response_length": 386
+      }
+    },
+    "timing": {
+      "query_parsing": 4.63237190246582,
+      "retrieval": 3.705312967300415,
+      "response_generation": 3.1801981925964355,
+      "total": 11.5178861618042
+    },
+    "recommendations": [
+      {
+        "type": "dish",
+        "dish_name": "gnocchi pasta",
+        "restaurant_name": "Porta",
+        "restaurant_id": "ChIJM6W1O7JQwokRkvWuopT4lpY",
+        "cuisine_type": "Italian",
+        "location": "Jersey City",
+        "sentiment_score": 0.6000000238418579,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.099999904632568,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "meatball pizza",
+        "restaurant_name": "Porta",
+        "restaurant_id": "ChIJM6W1O7JQwokRkvWuopT4lpY",
+        "cuisine_type": "Italian",
+        "location": "Jersey City",
+        "sentiment_score": 0.8999999761581421,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.099999904632568,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "Betty Pie",
+        "restaurant_name": "Porta",
+        "restaurant_id": "ChIJM6W1O7JQwokRkvWuopT4lpY",
+        "cuisine_type": "Italian",
+        "location": "Jersey City",
+        "sentiment_score": 0.8999999761581421,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.099999904632568,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "Pasta",
+        "restaurant_name": "Fire and Oak",
+        "restaurant_id": "ChIJa_XMY1NXwokR31BbU3f9xs0",
+        "cuisine_type": "Italian",
+        "location": "Jersey City",
+        "sentiment_score": 0.8999999761581421,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.300000190734863,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "Marinara",
+        "restaurant_name": "Razza",
+        "restaurant_id": "ChIJFSRtpLFQwokROP1exas0wNM",
+        "cuisine_type": "Italian",
+        "location": "Jersey City",
+        "sentiment_score": 0.8999999761581421,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.5,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "Pizza",
+        "restaurant_name": "Razza",
+        "restaurant_id": "ChIJFSRtpLFQwokROP1exas0wNM",
+        "cuisine_type": "Italian",
+        "location": "Jersey City",
+        "sentiment_score": 0.2750000059604645,
+        "recommendation_score": 0.5,
+        "restaurant_rating": 4.5,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "Di Natale pizza",
+        "restaurant_name": "Razza",
+        "restaurant_id": "ChIJFSRtpLFQwokROP1exas0wNM",
+        "cuisine_type": "Italian",
+        "location": "Jersey City",
+        "sentiment_score": 0.0,
+        "recommendation_score": 0.5,
+        "restaurant_rating": 4.5,
+        "confidence": 0.5
+      }
+    ],
+    "natural_response": "For a delightful Italian experience in Jersey City, try the Gnocchi Pasta at Porta, known for its perfectly tender gnocchi and rich, flavorful sauce. If you're in the mood for something else, the Marinara at Razza is another standout, praised for its fresh ingredients and exceptional taste. Both options come highly rated and are sure to satisfy your Italian cravings. Enjoy your meal!"
+  },
+  {
+    "test_case": {
+      "query": "What's the best Chicken Biryani in Hoboken?",
+      "type": "location_dish",
+      "expected_intent": "location_dish",
+      "expected_location": "Hoboken",
+      "expected_dish": "Chicken Biryani"
+    },
+    "success": true,
+    "pipeline_steps": {
+      "query_parsing": {
+        "success": true,
+        "parsed_query": {
+          "location": "Hoboken",
+          "restaurant_name": null,
+          "cuisine_type": "Indian",
+          "dish_name": "Chicken Biryani",
+          "meal_type": null,
+          "price_range": null,
+          "dietary_restrictions": [],
+          "restaurant_features": [],
+          "time_preference": null,
+          "party_size": null,
+          "intent": "location_dish",
+          "confidence": {
+            "location": 0.9,
+            "restaurant_name": 0.1,
+            "cuisine_type": 0.9,
+            "dish_name": 0.9,
+            "meal_type": 0.1,
+            "price_range": null,
+            "dietary_restrictions": 0.1,
+            "restaurant_features": 0.1,
+            "time_preference": 0.1,
+            "party_size": 0.1,
+            "overall": 0.7
+          }
+        },
+        "intent": "location_dish",
+        "confidence": 0.7
+      },
+      "retrieval": {
+        "success": true,
+        "recommendations_count": 0,
+        "fallback_used": false,
+        "fallback_reason": "No 'Chicken Biryani' found in Hoboken",
+        "recommendations": []
+      },
+      "response_generation": {
+        "success": false,
+        "error": "No recommendations to generate response for"
+      }
+    },
+    "timing": {
+      "query_parsing": 4.7843918800354,
+      "retrieval": 0.7189741134643555,
+      "response_generation": 0.0008499622344970703,
+      "total": 5.504223108291626
+    },
+    "recommendations": [],
+    "natural_response": ""
+  },
+  {
+    "test_case": {
+      "query": "I'm at Porta Pizza, what should I order?",
+      "type": "restaurant_specific",
+      "expected_intent": "restaurant_specific",
+      "expected_restaurant": "Porta Pizza"
+    },
+    "success": true,
+    "pipeline_steps": {
+      "query_parsing": {
+        "success": true,
+        "parsed_query": {
+          "location": null,
+          "restaurant_name": "Porta Pizza",
+          "cuisine_type": null,
+          "dish_name": null,
+          "meal_type": null,
+          "price_range": null,
+          "dietary_restrictions": [],
+          "restaurant_features": [],
+          "time_preference": null,
+          "party_size": null,
+          "intent": "restaurant_specific",
+          "confidence": {
+            "location": null,
+            "restaurant_name": 1.0,
+            "cuisine_type": null,
+            "dish_name": null,
+            "meal_type": null,
+            "price_range": null,
+            "dietary_restrictions": null,
+            "restaurant_features": null,
+            "time_preference": null,
+            "party_size": null,
+            "overall": 0.9
+          }
+        },
+        "intent": "restaurant_specific",
+        "confidence": 0.9
+      },
+      "retrieval": {
+        "success": true,
+        "recommendations_count": 0,
+        "fallback_used": false,
+        "fallback_reason": "Restaurant 'Porta Pizza' not found",
+        "recommendations": []
+      },
+      "response_generation": {
+        "success": false,
+        "error": "No recommendations to generate response for"
+      }
+    },
+    "timing": {
+      "query_parsing": 4.807249069213867,
+      "retrieval": 0.8315718173980713,
+      "response_generation": 0.0006439685821533203,
+      "total": 5.639469861984253
+    },
+    "recommendations": [],
+    "natural_response": ""
+  },
+  {
+    "test_case": {
+      "query": "Find me good Mexican restaurants in Jersey City",
+      "type": "location_cuisine",
+      "expected_intent": "location_cuisine",
+      "expected_location": "Jersey City",
+      "expected_cuisine": "Mexican"
+    },
+    "success": true,
+    "pipeline_steps": {
+      "query_parsing": {
+        "success": true,
+        "parsed_query": {
+          "location": "Jersey City",
+          "restaurant_name": null,
+          "cuisine_type": "Mexican",
+          "dish_name": null,
+          "meal_type": null,
+          "price_range": null,
+          "dietary_restrictions": [],
+          "restaurant_features": [],
+          "time_preference": null,
+          "party_size": null,
+          "intent": "location_cuisine",
+          "confidence": {
+            "location": 0.9,
+            "restaurant_name": 0.0,
+            "cuisine_type": 0.9,
+            "dish_name": 0.0,
+            "meal_type": 0.0,
+            "price_range": 0.0,
+            "dietary_restrictions": 0.0,
+            "restaurant_features": 0.0,
+            "time_preference": 0.0,
+            "party_size": 0.0,
+            "overall": 0.9
+          }
+        },
+        "intent": "location_cuisine",
+        "confidence": 0.9
+      },
+      "retrieval": {
+        "success": true,
+        "recommendations_count": 8,
+        "fallback_used": false,
+        "fallback_reason": null,
+        "recommendations": [
+          {
+            "type": "dish",
+            "dish_name": "marlee ahumado smokey margarita",
+            "restaurant_name": "Orale Mexican Kitchen",
+            "restaurant_id": "ChIJ7YRgarJQwokRvfzs5-00kuc",
+            "cuisine_type": "Mexican",
+            "location": "Jersey City",
+            "sentiment_score": 0.8999999761581421,
+            "recommendation_score": 0.800000011920929,
+            "restaurant_rating": 4.400000095367432,
+            "confidence": 0.5
+          },
+          {
+            "type": "dish",
+            "dish_name": "mini tacos",
+            "restaurant_name": "Orale Mexican Kitchen",
+            "restaurant_id": "ChIJ7YRgarJQwokRvfzs5-00kuc",
+            "cuisine_type": "Mexican",
+            "location": "Jersey City",
+            "sentiment_score": 0.30000001192092896,
+            "recommendation_score": 0.20000000298023224,
+            "restaurant_rating": 4.400000095367432,
+            "confidence": 0.5
+          },
+          {
+            "type": "dish",
+            "dish_name": "Burrito",
+            "restaurant_name": "Mi Mariachi",
+            "restaurant_id": "ChIJFzhnFSxXwokR_8MiF4tl4k0",
+            "cuisine_type": "Mexican",
+            "location": "Jersey City",
+            "sentiment_score": 0.887499988079071,
+            "recommendation_score": 0.800000011920929,
+            "restaurant_rating": 4.599999904632568,
+            "confidence": 0.5
+          }
+        ]
+      },
+      "response_generation": {
+        "success": true,
+        "response_length": 429
+      }
+    },
+    "timing": {
+      "query_parsing": 3.679821014404297,
+      "retrieval": 1.3921880722045898,
+      "response_generation": 2.8092050552368164,
+      "total": 7.881220102310181
+    },
+    "recommendations": [
+      {
+        "type": "dish",
+        "dish_name": "marlee ahumado smokey margarita",
+        "restaurant_name": "Orale Mexican Kitchen",
+        "restaurant_id": "ChIJ7YRgarJQwokRvfzs5-00kuc",
+        "cuisine_type": "Mexican",
+        "location": "Jersey City",
+        "sentiment_score": 0.8999999761581421,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.400000095367432,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "mini tacos",
+        "restaurant_name": "Orale Mexican Kitchen",
+        "restaurant_id": "ChIJ7YRgarJQwokRvfzs5-00kuc",
+        "cuisine_type": "Mexican",
+        "location": "Jersey City",
+        "sentiment_score": 0.30000001192092896,
+        "recommendation_score": 0.20000000298023224,
+        "restaurant_rating": 4.400000095367432,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "Burrito",
+        "restaurant_name": "Mi Mariachi",
+        "restaurant_id": "ChIJFzhnFSxXwokR_8MiF4tl4k0",
+        "cuisine_type": "Mexican",
+        "location": "Jersey City",
+        "sentiment_score": 0.887499988079071,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.599999904632568,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "Birria Tacos",
+        "restaurant_name": "Mi Mariachi",
+        "restaurant_id": "ChIJFzhnFSxXwokR_8MiF4tl4k0",
+        "cuisine_type": "Mexican",
+        "location": "Jersey City",
+        "sentiment_score": 0.8999999761581421,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.599999904632568,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "Lengua Burrito",
+        "restaurant_name": "Mi Mariachi",
+        "restaurant_id": "ChIJFzhnFSxXwokR_8MiF4tl4k0",
+        "cuisine_type": "Mexican",
+        "location": "Jersey City",
+        "sentiment_score": 0.0,
+        "recommendation_score": 0.5,
+        "restaurant_rating": 4.599999904632568,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "guacamole",
+        "restaurant_name": "tacoria - Mexican Street Kitchen",
+        "restaurant_id": "ChIJSTUqx-tRwokRyKPBs_ASNNY",
+        "cuisine_type": "Mexican",
+        "location": "Jersey City",
+        "sentiment_score": 0.0,
+        "recommendation_score": 0.5,
+        "restaurant_rating": 4.400000095367432,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "rice and beans",
+        "restaurant_name": "tacoria - Mexican Street Kitchen",
+        "restaurant_id": "ChIJSTUqx-tRwokRyKPBs_ASNNY",
+        "cuisine_type": "Mexican",
+        "location": "Jersey City",
+        "sentiment_score": -0.5,
+        "recommendation_score": 0.20000000298023224,
+        "restaurant_rating": 4.400000095367432,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "nachos",
+        "restaurant_name": "tacoria - Mexican Street Kitchen",
+        "restaurant_id": "ChIJSTUqx-tRwokRyKPBs_ASNNY",
+        "cuisine_type": "Mexican",
+        "location": "Jersey City",
+        "sentiment_score": -0.5,
+        "recommendation_score": 0.20000000298023224,
+        "restaurant_rating": 4.400000095367432,
+        "confidence": 0.5
+      }
+    ],
+    "natural_response": "For a delightful Mexican dining experience in Jersey City, try the Birria Tacos at Mi Mariachi, known for their rich flavors and tender meat\u2014it's a local favorite with a stellar 4.6 rating. Alternatively, Orale Mexican Kitchen offers a unique Marlee Ahumado Smokey Margarita that perfectly complements their Mini Tacos. Both spots promise a delicious adventure! Enjoy your meal with confidence\u2014these are tried-and-true favorites."
+  },
+  {
+    "test_case": {
+      "query": "I want Chinese food for dinner in Hoboken",
+      "type": "meal_planning",
+      "expected_intent": "meal_planning",
+      "expected_location": "Hoboken",
+      "expected_cuisine": "Chinese",
+      "expected_meal": "dinner"
+    },
+    "success": true,
+    "pipeline_steps": {
+      "query_parsing": {
+        "success": true,
+        "parsed_query": {
+          "location": "Hoboken",
+          "restaurant_name": null,
+          "cuisine_type": "Chinese",
+          "dish_name": null,
+          "meal_type": "dinner",
+          "price_range": null,
+          "dietary_restrictions": [],
+          "restaurant_features": [],
+          "time_preference": null,
+          "party_size": null,
+          "intent": "location_cuisine",
+          "confidence": {
+            "location": 0.9,
+            "restaurant_name": 0.0,
+            "cuisine_type": 0.9,
+            "dish_name": 0.0,
+            "meal_type": 0.9,
+            "price_range": null,
+            "dietary_restrictions": 0.0,
+            "restaurant_features": 0.0,
+            "time_preference": 0.0,
+            "party_size": 0.0,
+            "overall": 0.8
+          }
+        },
+        "intent": "location_cuisine",
+        "confidence": 0.8
+      },
+      "retrieval": {
+        "success": true,
+        "recommendations_count": 2,
+        "fallback_used": false,
+        "fallback_reason": null,
+        "recommendations": [
+          {
+            "type": "dish",
+            "dish_name": "braised pork in sauce",
+            "restaurant_name": "Chef Tan",
+            "restaurant_id": "ChIJIRY4Tp1XwokRC4bmWkW9LxA",
+            "cuisine_type": "Chinese",
+            "location": "Hoboken",
+            "sentiment_score": 0.800000011920929,
+            "recommendation_score": 0.800000011920929,
+            "restaurant_rating": 4.400000095367432,
+            "confidence": 0.5
+          },
+          {
+            "type": "dish",
+            "dish_name": "boneless tilapia in chili oil",
+            "restaurant_name": "Chef Tan",
+            "restaurant_id": "ChIJIRY4Tp1XwokRC4bmWkW9LxA",
+            "cuisine_type": "Chinese",
+            "location": "Hoboken",
+            "sentiment_score": 0.800000011920929,
+            "recommendation_score": 0.800000011920929,
+            "restaurant_rating": 4.400000095367432,
+            "confidence": 0.5
+          }
+        ]
+      },
+      "response_generation": {
+        "success": true,
+        "response_length": 350
+      }
+    },
+    "timing": {
+      "query_parsing": 4.601471900939941,
+      "retrieval": 0.8768332004547119,
+      "response_generation": 2.500154972076416,
+      "total": 7.9784650802612305
+    },
+    "recommendations": [
+      {
+        "type": "dish",
+        "dish_name": "braised pork in sauce",
+        "restaurant_name": "Chef Tan",
+        "restaurant_id": "ChIJIRY4Tp1XwokRC4bmWkW9LxA",
+        "cuisine_type": "Chinese",
+        "location": "Hoboken",
+        "sentiment_score": 0.800000011920929,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.400000095367432,
+        "confidence": 0.5
+      },
+      {
+        "type": "dish",
+        "dish_name": "boneless tilapia in chili oil",
+        "restaurant_name": "Chef Tan",
+        "restaurant_id": "ChIJIRY4Tp1XwokRC4bmWkW9LxA",
+        "cuisine_type": "Chinese",
+        "location": "Hoboken",
+        "sentiment_score": 0.800000011920929,
+        "recommendation_score": 0.800000011920929,
+        "restaurant_rating": 4.400000095367432,
+        "confidence": 0.5
+      }
+    ],
+    "natural_response": "For a delightful Chinese dinner in Hoboken, Chef Tan is a fantastic choice. I highly recommend trying the Braised Pork in Sauce\u2014it's rich and savory, a true favorite among locals. If you're in the mood for something with a bit of a kick, their Boneless Tilapia in Chili Oil is both flavorful and satisfying. Enjoy your meal at this highly-rated spot!"
+  }
+]

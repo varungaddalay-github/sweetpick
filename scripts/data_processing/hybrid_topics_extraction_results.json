@@ -1,0 +1,232 @@
+{
+  "restaurant": {
+    "restaurant_name": "Osteria La Baia",
+    "restaurant_id": "0x89c25930bc53d1a3:0xe92edb888b740614",
+    "reviews_data_id": "0x89c25930bc53d1a3:0xe92edb888b740614",
+    "address": "129 W 52nd St, New York, NY 10019",
+    "city": "New York",
+    "neighborhood": "Midtown West"
+  },
+  "restaurant_data": {
+    "reviews_count": 8,
+    "topics_count": 10,
+    "topics": [
+      {
+        "keyword": "pappardelle bolognese",
+        "mentions": 14,
+        "id": "/g/11j3v0ng2t"
+      },
+      {
+        "keyword": "tuna tartare",
+        "mentions": 14,
+        "id": "/g/11h92_tm35"
+      },
+      {
+        "keyword": "broadway",
+        "mentions": 14,
+        "id": "/m/035y8z"
+      },
+      {
+        "keyword": "lobster pasta",
+        "mentions": 12,
+        "id": "/g/11h930f9rz"
+      },
+      {
+        "keyword": "olive oil cake",
+        "mentions": 10,
+        "id": "/g/11j3v0b4nx"
+      },
+      {
+        "keyword": "squid ink pasta",
+        "mentions": 9,
+        "id": "/g/11n5zchfgn"
+      },
+      {
+        "keyword": "watermelon salad",
+        "mentions": 7,
+        "id": "/g/11lrwjj80f"
+      },
+      {
+        "keyword": "radio city music hall",
+        "mentions": 7,
+        "id": "/m/016xm_"
+      },
+      {
+        "keyword": "cacio e pepe with truffle",
+        "mentions": 6,
+        "id": "/g/11qyd025m9"
+      },
+      {
+        "keyword": "roasted octopus",
+        "mentions": 5,
+        "id": "/g/11fqb7_1q4"
+      }
+    ]
+  },
+  "hybrid_dishes": [
+    {
+      "name": "lobster pasta",
+      "topic_mentions": 12,
+      "topic_score": 9.600000000000001,
+      "sentiment_score": 0.5,
+      "final_score": 7.780000000000001,
+      "source": "topics",
+      "topic_id": "/g/11h930f9rz",
+      "reviews_analyzed": 0,
+      "sentiment_details": {
+        "no_reviews_found": true
+      },
+      "topic_contribution": 7.6800000000000015,
+      "sentiment_contribution": 0.1
+    },
+    {
+      "name": "olive oil cake",
+      "topic_mentions": 10,
+      "topic_score": 8.0,
+      "sentiment_score": 0.5,
+      "final_score": 6.5,
+      "source": "topics",
+      "topic_id": "/g/11j3v0b4nx",
+      "reviews_analyzed": 0,
+      "sentiment_details": {
+        "no_reviews_found": true
+      },
+      "topic_contribution": 6.4,
+      "sentiment_contribution": 0.1
+    },
+    {
+      "name": "squid ink pasta",
+      "topic_mentions": 9,
+      "topic_score": 7.2,
+      "sentiment_score": 0.5,
+      "final_score": 5.86,
+      "source": "topics",
+      "topic_id": "/g/11n5zchfgn",
+      "reviews_analyzed": 1,
+      "sentiment_details": {
+        "dish_name": "squid ink pasta",
+        "total_reviews": 1,
+        "average_sentiment_score": 1.0,
+        "sentiment_distribution": {
+          "positive": 1
+        },
+        "recommendation_distribution": {
+          "recommend": 1
+        },
+        "positive_aspects": [
+          "amazing taste",
+          "loved the squid ink pasta"
+        ],
+        "negative_aspects": [],
+        "overall_recommendation": "recommend",
+        "confidence": 0.09000000000000001,
+        "individual_sentiments": [
+          {
+            "sentiment_score": 1.0,
+            "sentiment_category": "positive",
+            "positive_aspects": [
+              "amazing taste",
+              "loved the squid ink pasta"
+            ],
+            "negative_aspects": [],
+            "recommendation": "recommend",
+            "confidence": 0.9,
+            "reasoning": "The review expresses strong enthusiasm for the squid ink pasta, describing it as 'amazing' and indicating a high level of satisfaction. There are no negative aspects mentioned regarding the dish, and the overall tone is very positive, leading to a strong recommendation.",
+            "review_text": "This was our first time at Osteria La Baia and it will not be our last! My dish was amazing - loved the squid ink pasta! Our server, Pietro, was great. His attention to detail and personality made our experience even better. Request Pietro as your server for top-notch service. We'll be back!",
+            "review_id": "ChdDSUhNMG9nS0VJXy12dmptemRqanhRRRAB"
+          }
+        ]
+      },
+      "topic_contribution": 5.760000000000001,
+      "sentiment_contribution": 0.1
+    },
+    {
+      "name": "watermelon salad",
+      "topic_mentions": 7,
+      "topic_score": 5.6000000000000005,
+      "sentiment_score": 0.5,
+      "final_score": 4.58,
+      "source": "topics",
+      "topic_id": "/g/11lrwjj80f",
+      "reviews_analyzed": 1,
+      "sentiment_details": {
+        "dish_name": "watermelon salad",
+        "total_reviews": 1,
+        "average_sentiment_score": 0.8,
+        "sentiment_distribution": {
+          "positive": 1
+        },
+        "recommendation_distribution": {
+          "recommend": 1
+        },
+        "positive_aspects": [
+          "very good taste",
+          "part of a special menu",
+          "enhanced dining experience"
+        ],
+        "negative_aspects": [],
+        "overall_recommendation": "recommend",
+        "confidence": 0.09000000000000001,
+        "individual_sentiments": [
+          {
+            "sentiment_score": 0.8,
+            "sentiment_category": "positive",
+            "positive_aspects": [
+              "very good taste",
+              "part of a special menu",
+              "enhanced dining experience"
+            ],
+            "negative_aspects": [],
+            "recommendation": "recommend",
+            "confidence": 0.9,
+            "reasoning": "The review explicitly states that the watermelon salad was 'very good', indicating a strong positive sentiment towards the dish. There are no negative aspects mentioned regarding the salad, and the overall context of the review supports a recommendation.",
+            "review_text": "Probably one of the nicest dining experiences and most friendly and professional nights in a long while. We travel all over and it seems customer service at higher end restaurants is suffering. This place was perfect. The manager seated us quickly and pulled out the table for my wife. Plates were set with the restaurants name at the top. Our server, Blerta was a personable angel, friendly, wanted to know what we wanted to point us to the best dishes and has exactly correct suggestions. Drinks arrived quickly and correct. Our salad was a special, a watermelon salad, which was very good. Blerta asked how it was going, kept an eye on us and asked when we would be ready for our entres which then arrived exactly in time and prepared and presented beautifully. The chef was not behind the counter in the kitchen but on the restaurant side watching all dishes before they went out, making sure they were astonishing before being delivered. The whole staff seemed to work together like a family or friends to coordinate a top notch experience which was also relaxed. I can't say enough nice things, we went before a Broadway show, I highly recommend this restaurant.",
+            "review_id": null
+          }
+        ]
+      },
+      "topic_contribution": 4.48,
+      "sentiment_contribution": 0.1
+    },
+    {
+      "name": "cacio e pepe with truffle",
+      "topic_mentions": 6,
+      "topic_score": 4.800000000000001,
+      "sentiment_score": 0.5,
+      "final_score": 3.940000000000001,
+      "source": "topics",
+      "topic_id": "/g/11qyd025m9",
+      "reviews_analyzed": 0,
+      "sentiment_details": {
+        "no_reviews_found": true
+      },
+      "topic_contribution": 3.8400000000000007,
+      "sentiment_contribution": 0.1
+    },
+    {
+      "name": "roasted octopus",
+      "topic_mentions": 5,
+      "topic_score": 4.0,
+      "sentiment_score": 0.5,
+      "final_score": 3.3000000000000003,
+      "source": "topics",
+      "topic_id": "/g/11fqb7_1q4",
+      "reviews_analyzed": 0,
+      "sentiment_details": {
+        "no_reviews_found": true
+      },
+      "topic_contribution": 3.2,
+      "sentiment_contribution": 0.1
+    }
+  ],
+  "statistics": {
+    "total_extractions": 1,
+    "topics_found": 6,
+    "sentiment_validations": 2,
+    "hybrid_scores_calculated": 6
+  },
+  "weighting": {
+    "topic_weight": 0.8,
+    "sentiment_weight": 0.2
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "restaurant": {
+    "restaurant_name": "Osteria La Baia",
+    "restaurant_id": "0x89c25930bc53d1a3:0xe92edb888b740614",
+    "reviews_data_id": "0x89c25930bc53d1a3:0xe92edb888b740614",
+    "address": "129 W 52nd St, New York, NY 10019",
+    "city": "New York",
+    "neighborhood": "Midtown West"
+  },
+  "result": {
+    "reviews": [
+      {
+        "review_id": "ChdDSUhNMG9nS0VJWFAycUtEdmFDdHN3RRAB",
+        "user_name": "Lauren",
+        "rating": 5.0,
+        "date": "2 months ago",
+        "text": "This was a very nice experience. Our waiter Jarrod had some excellent wine recommendations and was able to help us order a perfect meal. I highly recommend the calamari and the rigatoni, both were delicious. The service was quick and they offer complimentary bread and oil which is nice. The interior was gorgeous and is very chic if you want to impress visitors.",
+        "likes": 0,
+        "translated": false
+      },
+      {
+        "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pkaFpHOWpSM1E0UW5CR1lWTTRhSHBTTlhKS2NWRRAB",
+        "user_name": "Michael St. Denis",
+        "rating": 5.0,
+        "date": "2 weeks ago",
+        "text": "Probably one of the nicest dining experiences and most friendly and professional nights in a long while.   We travel all over and it seems customer service at higher end restaurants is suffering.   This place was perfect.   The manager seated us quickly and pulled out the table for my wife.   Plates were set with the restaurants name at the top.   Our server, Blerta was a personable angel, friendly, wanted to know what we wanted to point us to the best dishes and has exactly correct suggestions.   Drinks arrived quickly and correct.   Our salad was a special, a watermelon salad, which was very good.   Blerta asked how it was going, kept an eye on us and asked when we would be ready for our entres which then arrived exactly in time and prepared and presented beautifully.   The chef was not behind the counter in the kitchen but on the restaurant side watching all dishes before they went out, making sure they were astonishing before being delivered.   The whole staff seemed to work together like a family or friends to coordinate a top notch experience which was also relaxed.   I can't say enough nice things, we went before a Broadway show, I highly recommend this restaurant.",
+        "likes": 0,
+        "translated": false
+      },
+      {
+        "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pKbVIwdDNjamw1U1MxR2MwNVBObkJqTVZKU1JGRRAB",
+        "user_name": "Harvey Messing",
+        "rating": 3.0,
+        "date": "Edited 3 weeks ago",
+        "text": "I had their pan-seared salmon ($40) that came with mashed potatoes, escarole, and grilled asparagus. I had the salmon served medium, half of it was moist and very flavorful, the other half was dry and flavorless. Usually, when a food item comes with vegetables, a waitress does not ask if I want vegetables on the side, which my waitress did. The seating area beyond the bar area is the nicer section of the restaurant, both are pictured below. The restaurant is located at 129 West 52nd Street, between 6th and 7th Avenues. It is easily recognizable by a light blue mini-car on the sidewalk, near the restaurant entrance.",
+        "likes": 0,
+        "translated": false
+      },
+      {
+        "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25wNFpURnZablZFU2tORVpXOUlVeTEzWDBRelJIYxAB",
+        "user_name": "Dee N",
+        "rating": 5.0,
+        "date": "a month ago",
+        "text": "10/10 ! Service was top notch! Food was AMAZING! Lina our server was phenomenal and added to such a beautiful evening. Exactly the perfect atmosphere for our 14th year anniversary. Everything we had - drinks, appetizers, mains and desserts were delicious and on point! We will definitely be back! No complaints \u2026..",
+        "likes": 0,
+        "translated": false
+      },
+      {
+        "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25wYWJWTkVORTFaUWtwTFkzTnRabGxzUVc5dlZXYxAB",
+        "user_name": "Steven Schiff",
+        "rating": 5.0,
+        "date": "Edited 2 weeks ago",
+        "text": "We picked this restaurant because it was close to our hotel. Turned out we chose well. The food was very excellent and our server Alexis was fantastic.  The whole staff was great. We really felt welcomed. We will definitely return on our next trip to NYC. Thank you.",
+        "likes": 0,
+        "translated": false
+      }
+    ],
+    "topics": [
+      {
+        "keyword": "pappardelle bolognese",
+        "mentions": 14,
+        "id": "/g/11j3v0ng2t"
+      },
+      {
+        "keyword": "tuna tartare",
+        "mentions": 14,
+        "id": "/g/11h92_tm35"
+      },
+      {
+        "keyword": "broadway",
+        "mentions": 14,
+        "id": "/m/035y8z"
+      },
+      {
+        "keyword": "lobster pasta",
+        "mentions": 12,
+        "id": "/g/11h930f9rz"
+      },
+      {
+        "keyword": "olive oil cake",
+        "mentions": 10,
+        "id": "/g/11j3v0b4nx"
+      },
+      {
+        "keyword": "squid ink pasta",
+        "mentions": 9,
+        "id": "/g/11n5zchfgn"
+      },
+      {
+        "keyword": "watermelon salad",
+        "mentions": 7,
+        "id": "/g/11lrwjj80f"
+      },
+      {
+        "keyword": "radio city music hall",
+        "mentions": 7,
+        "id": "/m/016xm_"
+      },
+      {
+        "keyword": "cacio e pepe with truffle",
+        "mentions": 6,
+        "id": "/g/11qyd025m9"
+      },
+      {
+        "keyword": "roasted octopus",
+        "mentions": 5,
+        "id": "/g/11fqb7_1q4"
+      }
+    ]
+  },
+  "summary": {
+    "reviews_count": 5,
+    "topics_count": 10,
+    "topics_with_mentions": [
+      {
+        "keyword": "pappardelle bolognese",
+        "mentions": 14
+      },
+      {
+        "keyword": "tuna tartare",
+        "mentions": 14
+      },
+      {
+        "keyword": "broadway",
+        "mentions": 14
+      },
+      {
+        "keyword": "lobster pasta",
+        "mentions": 12
+      },
+      {
+        "keyword": "olive oil cake",
+        "mentions": 10
+      },
+      {
+        "keyword": "squid ink pasta",
+        "mentions": 9
+      },
+      {
+        "keyword": "watermelon salad",
+        "mentions": 7
+      },
+      {
+        "keyword": "radio city music hall",
+        "mentions": 7
+      },
+      {
+        "keyword": "cacio e pepe with truffle",
+        "mentions": 6
+      },
+      {
+        "keyword": "roasted octopus",
+        "mentions": 5
+      }
+    ]
+  }
+}

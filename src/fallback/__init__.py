@@ -1,0 +1,1 @@
+# Fallback strategies for when primary queries fail 

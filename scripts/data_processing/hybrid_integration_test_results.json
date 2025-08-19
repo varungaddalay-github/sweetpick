@@ -1,0 +1,81 @@
+{
+  "test_restaurant": {
+    "restaurant_name": "Osteria La Baia",
+    "restaurant_id": "0x89c25930bc53d1a3:0xe92edb888b740614",
+    "reviews_data_id": "0x89c25930bc53d1a3:0xe92edb888b740614",
+    "address": "129 W 52nd St, New York, NY 10019",
+    "city": "New York",
+    "neighborhood": "Midtown West"
+  },
+  "direct_hybrid_results": {
+    "dishes_count": 6,
+    "dishes": [
+      {
+        "name": "lobster pasta",
+        "dish_name": "lobster pasta",
+        "topic_mentions": 12,
+        "topic_score": 9.600000000000001,
+        "sentiment_score": 0.5,
+        "final_score": 7.780000000000001,
+        "source": "topics",
+        "topic_id": "/g/11h930f9rz",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 7.6800000000000015,
+        "sentiment_contribution": 0.1
+      },
+      {
+        "name": "olive oil cake",
+        "dish_name": "olive oil cake",
+        "topic_mentions": 10,
+        "topic_score": 8.0,
+        "sentiment_score": 0.5,
+        "final_score": 6.5,
+        "source": "topics",
+        "topic_id": "/g/11j3v0b4nx",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 6.4,
+        "sentiment_contribution": 0.1
+      },
+      {
+        "name": "squid ink pasta",
+        "dish_name": "squid ink pasta",
+        "topic_mentions": 9,
+        "topic_score": 7.2,
+        "sentiment_score": 0.5,
+        "final_score": 5.86,
+        "source": "topics",
+        "topic_id": "/g/11n5zchfgn",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 5.760000000000001,
+        "sentiment_contribution": 0.1
+      }
+    ],
+    "stats": {
+      "total_extractions": 1,
+      "topics_found": 6,
+      "sentiment_validations": 1,
+      "hybrid_scores_calculated": 6
+    }
+  },
+  "parallel_collector_results": {
+    "restaurants_processed": 1,
+    "total_dishes": 6,
+    "stats": {
+      "restaurants_processed": 0,
+      "dishes_extracted": 0,
+      "reviews_processed": 0,
+      "errors": 0,
+      "processing_time": 0.0
+    }
+  },
+  "integration_status": "success"
+}

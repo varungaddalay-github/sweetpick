@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SweetPick - Find Your Perfect Bite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rock+Salt&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <script>
+        console.log('HTML template loaded successfully!');
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-utensils logo-icon"></i>
+                <span class="logo-text">SweetPick</span>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-link">About</a>
+                <a href="#" class="nav-link">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Find Your Perfect Bite</h1>
+                <p class="hero-subtitle">Your AI-powered guide to the tastiest dishes at the hottest restaurants</p>
+                
+                <!-- Search Section -->
+                <div class="search-container">
+                    <form id="searchForm" class="search-form">
+                        <div class="search-input-group">
+                            <i class="fas fa-search search-icon"></i>
+                            <input 
+                                type="text" 
+                                id="searchInput" 
+                                class="search-input" 
+                                placeholder="I'm in Manhattan and craving Italian food..."
+                                autocomplete="off"
+                            >
+                            <button type="submit" class="search-btn">
+                                <span class="search-btn-text">Search</span>
+                                <i class="fas fa-arrow-right search-btn-icon"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Neighborhood Selection -->
+                        <div class="neighborhood-selector" id="neighborhoodSelector" style="display: none;">
+                            <div class="neighborhood-header">
+                                <span class="neighborhood-label">📍 Select Neighborhood:</span>
+                                <button type="button" class="neighborhood-toggle" id="neighborhoodToggle">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span id="selectedNeighborhood">Choose neighborhood</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="neighborhood-dropdown" id="neighborhoodDropdown" style="display: none;">
+                                <div class="neighborhood-list" id="neighborhoodList">
+                                    <!-- Neighborhoods will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Quick Filters -->
+                    <div class="quick-filters">
+                        <span class="filter-label">Quick picks:</span>
+                        <div class="filter-buttons">
+                            <button class="filter-btn" data-query="Italian food in Manhattan">🍝 Italian</button>
+                            <button class="filter-btn" data-query="Indian food in Jersey City">🍛 Indian</button>
+                            <button class="filter-btn" data-query="Chinese food in Hoboken">🥢 Chinese</button>
+                            <button class="filter-btn" data-query="Mexican food in Manhattan">🌮 Mexican</button>
+                            <button class="filter-btn" data-query="American food in Jersey City">🍔 American</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results" id="resultsSection" style="display: none;">
+        <div class="container">
+            <div class="results-header">
+                <h2 class="results-title">Recommendations</h2>
+                <div class="results-meta">
+                    <span id="resultsCount">0 results</span>
+                    <span class="results-time" id="resultsTime"></span>
+                </div>
+            </div>
+            
+            <!-- Natural Language Response -->
+            <div class="ai-response" id="aiResponse"></div>
+            
+            <!-- Results Grid -->
+            <div class="results-grid" id="resultsGrid"></div>
+            
+            <!-- Loading State -->
+            <div class="loading" id="loadingState">
+                <div class="cooking-scene">
+                    <div class="cooking-pot">🍳</div>
+                    <div class="cooking-steam">💨</div>
+                    <div class="cooking-sparkles">✨</div>
+                </div>
+                <div class="loading-messages">
+                    <p id="loadingMessage">Cooking up your perfect recommendations...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fas fa-utensils footer-logo"></i>
+                    <span class="footer-logo-text">SweetPick</span>
+                </div>
+                <div class="footer-info">
+                    <p>Powered by AI • Curated for food lovers everywhere</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div id="chatWidget" class="chat-widget">
+      <div class="chat-header">
+        <span>SweetPick Assistant</span>
+        <button id="chatCloseBtn" aria-label="Close">✕</button>
+      </div>
+      <div id="chatMessages" class="chat-messages"></div>
+      <div class="chat-input">
+        <input id="chatInput" type="text" placeholder="Ask me anything about food..." />
+        <button id="chatSendBtn">Send</button>
+      </div>
+    </div>
+
+    <button id="chatOpenBtn" class="chat-fab" aria-label="Open chat">💬</button>
+
+    <script src="{{ url_for('static', path='/js/app.js') }}?v=1.1"></script>
+</body>
+</html> 

@@ -1,0 +1,258 @@
+{
+  "Topics-Heavy (80/20)": {
+    "weights": {
+      "topic": 0.8,
+      "sentiment": 0.2,
+      "name": "Topics-Heavy (80/20)"
+    },
+    "dishes_count": 6,
+    "top_dishes": [
+      {
+        "name": "lobster pasta",
+        "dish_name": "lobster pasta",
+        "topic_mentions": 12,
+        "topic_score": 9.600000000000001,
+        "sentiment_score": 0.5,
+        "final_score": 7.780000000000001,
+        "source": "topics",
+        "topic_id": "/g/11h930f9rz",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 7.6800000000000015,
+        "sentiment_contribution": 0.1
+      },
+      {
+        "name": "olive oil cake",
+        "dish_name": "olive oil cake",
+        "topic_mentions": 10,
+        "topic_score": 8.0,
+        "sentiment_score": 0.5,
+        "final_score": 6.5,
+        "source": "topics",
+        "topic_id": "/g/11j3v0b4nx",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 6.4,
+        "sentiment_contribution": 0.1
+      },
+      {
+        "name": "squid ink pasta",
+        "dish_name": "squid ink pasta",
+        "topic_mentions": 9,
+        "topic_score": 7.2,
+        "sentiment_score": 0.5,
+        "final_score": 5.86,
+        "source": "topics",
+        "topic_id": "/g/11n5zchfgn",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 5.760000000000001,
+        "sentiment_contribution": 0.1
+      }
+    ],
+    "stats": {
+      "total_extractions": 1,
+      "topics_found": 6,
+      "sentiment_validations": 1,
+      "hybrid_scores_calculated": 6
+    }
+  },
+  "Balanced (60/40)": {
+    "weights": {
+      "topic": 0.6,
+      "sentiment": 0.4,
+      "name": "Balanced (60/40)"
+    },
+    "dishes_count": 6,
+    "top_dishes": [
+      {
+        "name": "lobster pasta",
+        "dish_name": "lobster pasta",
+        "topic_mentions": 12,
+        "topic_score": 7.199999999999999,
+        "sentiment_score": 0.5,
+        "final_score": 4.52,
+        "source": "topics",
+        "topic_id": "/g/11h930f9rz",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 4.319999999999999,
+        "sentiment_contribution": 0.2
+      },
+      {
+        "name": "olive oil cake",
+        "dish_name": "olive oil cake",
+        "topic_mentions": 10,
+        "topic_score": 6.0,
+        "sentiment_score": 0.5,
+        "final_score": 3.8,
+        "source": "topics",
+        "topic_id": "/g/11j3v0b4nx",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 3.5999999999999996,
+        "sentiment_contribution": 0.2
+      },
+      {
+        "name": "squid ink pasta",
+        "dish_name": "squid ink pasta",
+        "topic_mentions": 9,
+        "topic_score": 5.3999999999999995,
+        "sentiment_score": 0.5,
+        "final_score": 3.44,
+        "source": "topics",
+        "topic_id": "/g/11n5zchfgn",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 3.2399999999999998,
+        "sentiment_contribution": 0.2
+      }
+    ],
+    "stats": {
+      "total_extractions": 1,
+      "topics_found": 6,
+      "sentiment_validations": 1,
+      "hybrid_scores_calculated": 6
+    }
+  },
+  "Topics-Dominant (90/10)": {
+    "weights": {
+      "topic": 0.9,
+      "sentiment": 0.1,
+      "name": "Topics-Dominant (90/10)"
+    },
+    "dishes_count": 6,
+    "top_dishes": [
+      {
+        "name": "lobster pasta",
+        "dish_name": "lobster pasta",
+        "topic_mentions": 12,
+        "topic_score": 10.8,
+        "sentiment_score": 0.5,
+        "final_score": 9.770000000000001,
+        "source": "topics",
+        "topic_id": "/g/11h930f9rz",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 9.72,
+        "sentiment_contribution": 0.05
+      },
+      {
+        "name": "olive oil cake",
+        "dish_name": "olive oil cake",
+        "topic_mentions": 10,
+        "topic_score": 9.0,
+        "sentiment_score": 0.5,
+        "final_score": 8.15,
+        "source": "topics",
+        "topic_id": "/g/11j3v0b4nx",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 8.1,
+        "sentiment_contribution": 0.05
+      },
+      {
+        "name": "squid ink pasta",
+        "dish_name": "squid ink pasta",
+        "topic_mentions": 9,
+        "topic_score": 8.1,
+        "sentiment_score": 0.5,
+        "final_score": 7.34,
+        "source": "topics",
+        "topic_id": "/g/11n5zchfgn",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 7.29,
+        "sentiment_contribution": 0.05
+      }
+    ],
+    "stats": {
+      "total_extractions": 1,
+      "topics_found": 6,
+      "sentiment_validations": 1,
+      "hybrid_scores_calculated": 6
+    }
+  },
+  "Equal (50/50)": {
+    "weights": {
+      "topic": 0.5,
+      "sentiment": 0.5,
+      "name": "Equal (50/50)"
+    },
+    "dishes_count": 6,
+    "top_dishes": [
+      {
+        "name": "lobster pasta",
+        "dish_name": "lobster pasta",
+        "topic_mentions": 12,
+        "topic_score": 6.0,
+        "sentiment_score": 0.5,
+        "final_score": 3.25,
+        "source": "topics",
+        "topic_id": "/g/11h930f9rz",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 3.0,
+        "sentiment_contribution": 0.25
+      },
+      {
+        "name": "olive oil cake",
+        "dish_name": "olive oil cake",
+        "topic_mentions": 10,
+        "topic_score": 5.0,
+        "sentiment_score": 0.5,
+        "final_score": 2.75,
+        "source": "topics",
+        "topic_id": "/g/11j3v0b4nx",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 2.5,
+        "sentiment_contribution": 0.25
+      },
+      {
+        "name": "squid ink pasta",
+        "dish_name": "squid ink pasta",
+        "topic_mentions": 9,
+        "topic_score": 4.5,
+        "sentiment_score": 0.5,
+        "final_score": 2.5,
+        "source": "topics",
+        "topic_id": "/g/11n5zchfgn",
+        "reviews_analyzed": 0,
+        "sentiment_details": {
+          "no_reviews_found": true
+        },
+        "topic_contribution": 2.25,
+        "sentiment_contribution": 0.25
+      }
+    ],
+    "stats": {
+      "total_extractions": 1,
+      "topics_found": 6,
+      "sentiment_validations": 1,
+      "hybrid_scores_calculated": 6
+    }
+  }
+}

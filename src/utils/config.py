@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     milvus_database: str = Field("default", description="Milvus database name")
     
     # Database
-    database_url: str = Field(..., description="Database URL")
+    database_url: str = Field("sqlite:///./sweet_morsels.db", description="Database URL")
     
     # Redis
     redis_url: str = Field("redis://localhost:6379", description="Redis URL")
@@ -70,16 +70,30 @@ class Settings(BaseSettings):
     )
     
     model_config = {
-        "env_file": ".env",
         "case_sensitive": False,
         "extra": "ignore"
     }
 
 
-# Global settings instance
-settings = Settings()
+# Global settings instance with error handling
+try:
+    settings = Settings()
+except Exception as e:
+    # For Vercel deployment, create a minimal settings object
+    print(f"Warning: Could not load all settings: {e}")
+    settings = None
 
 
 def get_settings() -> Settings:
     """Get the global settings instance."""
+    if settings is None:
+        # Create a minimal settings object for deployment
+        return Settings(
+            openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+            serpapi_key=os.getenv("SERPAPI_API_KEY", ""),
+            milvus_uri=os.getenv("MILVUS_URI", ""),
+            milvus_token=os.getenv("MILVUS_TOKEN", ""),
+            environment=os.getenv("ENVIRONMENT", "production"),
+            log_level=os.getenv("LOG_LEVEL", "INFO")
+        )
     return settings 

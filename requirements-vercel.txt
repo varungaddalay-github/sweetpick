@@ -24,6 +24,10 @@ httpx==0.26.0
 tenacity==8.2.3
 loguru==0.7.2
 
+# Additional dependencies that might be missing
+setuptools>=65.0.0
+wheel>=0.38.0
+
 # Remove heavy dependencies for serverless:
 # - pandas (too large for serverless)
 # - psycopg2-binary (not needed if using managed DB)

@@ -1,0 +1,23 @@
+# Vercel Environment Variables Template
+# Copy these to Vercel Project Settings → Environment Variables
+
+# Required API Keys
+OPENAI_API_KEY=sk-your-openai-api-key-here
+SERPAPI_API_KEY=your-serpapi-key-here
+
+# Milvus Cloud Configuration
+MILVUS_URI=https://your-cluster-id.zillizcloud.com
+MILVUS_TOKEN=your-milvus-token-here
+
+# Optional Redis (if using)
+REDIS_URL=redis://your-redis-url:port
+
+# Application Settings
+LOG_LEVEL=INFO
+ENVIRONMENT=production
+
+# Notes:
+# 1. Replace all placeholder values with your actual API keys
+# 2. Get OpenAI key from: https://platform.openai.com/api-keys
+# 3. Get SerpAPI key from: https://serpapi.com/
+# 4. Get Milvus credentials from: https://cloud.zilliz.com/

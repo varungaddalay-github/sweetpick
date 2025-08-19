@@ -10,23 +10,103 @@ import uuid
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from openai import AsyncOpenAI
-from src.utils.config import get_settings
-from src.utils.logger import app_logger
-from src.data_collection.serpapi_collector import SerpAPICollector
-from src.data_collection.data_validator import DataValidator
-from src.processing.dish_extractor import DishExtractor
-from src.processing.sentiment_analyzer import SentimentAnalyzer
-from src.vector_db.milvus_client import MilvusClient
-from src.query_processing.query_parser import QueryParser
-from src.query_processing.enhanced_retrieval_engine import EnhancedRetrievalEngine
-from src.fallback.fallback_handler import FallbackHandler
-from src.processing.response_generator import ResponseGenerator
-from src.security.abuse_protection import abuse_protection
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
 from fastapi.responses import HTMLResponse
+
+# Try to import optional dependencies with fallbacks
+try:
+    from openai import AsyncOpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    print("Warning: OpenAI not available")
+
+try:
+    from src.utils.config import get_settings
+    CONFIG_AVAILABLE = True
+except ImportError as e:
+    CONFIG_AVAILABLE = False
+    print(f"Warning: Config not available: {e}")
+
+try:
+    from src.utils.logger import app_logger
+    LOGGER_AVAILABLE = True
+except ImportError:
+    LOGGER_AVAILABLE = False
+    print("Warning: Logger not available")
+
+# Try to import other modules with fallbacks
+try:
+    from src.data_collection.serpapi_collector import SerpAPICollector
+    SERPAPI_AVAILABLE = True
+except ImportError:
+    SERPAPI_AVAILABLE = False
+    print("Warning: SerpAPI collector not available")
+
+try:
+    from src.data_collection.data_validator import DataValidator
+    VALIDATOR_AVAILABLE = True
+except ImportError:
+    VALIDATOR_AVAILABLE = False
+    print("Warning: Data validator not available")
+
+try:
+    from src.processing.dish_extractor import DishExtractor
+    DISH_EXTRACTOR_AVAILABLE = True
+except ImportError:
+    DISH_EXTRACTOR_AVAILABLE = False
+    print("Warning: Dish extractor not available")
+
+try:
+    from src.processing.sentiment_analyzer import SentimentAnalyzer
+    SENTIMENT_AVAILABLE = True
+except ImportError:
+    SENTIMENT_AVAILABLE = False
+    print("Warning: Sentiment analyzer not available")
+
+try:
+    from src.vector_db.milvus_client import MilvusClient
+    MILVUS_AVAILABLE = True
+except ImportError:
+    MILVUS_AVAILABLE = False
+    print("Warning: Milvus client not available")
+
+try:
+    from src.query_processing.query_parser import QueryParser
+    QUERY_PARSER_AVAILABLE = True
+except ImportError:
+    QUERY_PARSER_AVAILABLE = False
+    print("Warning: Query parser not available")
+
+try:
+    from src.query_processing.enhanced_retrieval_engine import EnhancedRetrievalEngine
+    RETRIEVAL_AVAILABLE = True
+except ImportError:
+    RETRIEVAL_AVAILABLE = False
+    print("Warning: Retrieval engine not available")
+
+try:
+    from src.fallback.fallback_handler import FallbackHandler
+    FALLBACK_AVAILABLE = True
+except ImportError:
+    FALLBACK_AVAILABLE = False
+    print("Warning: Fallback handler not available")
+
+try:
+    from src.processing.response_generator import ResponseGenerator
+    RESPONSE_GENERATOR_AVAILABLE = True
+except ImportError:
+    RESPONSE_GENERATOR_AVAILABLE = False
+    print("Warning: Response generator not available")
+
+try:
+    from src.security.abuse_protection import abuse_protection
+    ABUSE_PROTECTION_AVAILABLE = True
+except ImportError:
+    ABUSE_PROTECTION_AVAILABLE = False
+    print("Warning: Abuse protection not available")
 
 
 # Pydantic models

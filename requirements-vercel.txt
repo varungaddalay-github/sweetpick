@@ -1,36 +1,29 @@
-# Core FastAPI dependencies for Vercel
-fastapi==0.109.2
-uvicorn==0.27.1
-pydantic==2.6.1
+# Core FastAPI dependencies for Vercel - exact versions
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
 pydantic-settings==2.1.0
-python-dotenv==1.0.1
+python-dotenv==1.0.0
 
-# Data collection - keep essential only
+# Data collection
 google-search-results==2.4.2
 requests==2.31.0
-aiohttp==3.9.3
-urllib3<2.0.0
+aiohttp==3.9.1
+urllib3==1.26.18
 
 # AI/ML
-openai==1.12.0
-numpy==1.26.4
+openai==1.3.7
+numpy==1.24.3
 
-# Vector database - optimized version
-pymilvus>=2.3.0,<3.0.0
+# Vector database
+pymilvus==2.3.4
 
-# Essential utilities only
-python-multipart==0.0.9
-httpx==0.26.0
+# Utilities
+python-multipart==0.0.6
+httpx==0.25.2
 tenacity==8.2.3
 loguru==0.7.2
 
-# Additional dependencies that might be missing
-setuptools>=65.0.0
-wheel>=0.38.0
-
-# Remove heavy dependencies for serverless:
-# - pandas (too large for serverless)
-# - psycopg2-binary (not needed if using managed DB)
-# - redis (can be optional)
-# - testing libraries (not needed in production)
-# - development tools (not needed in production)
+# Build tools
+setuptools==68.2.2
+wheel==0.41.2

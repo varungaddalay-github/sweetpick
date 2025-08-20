@@ -61,6 +61,25 @@ except Exception as e:
             "message": "Test endpoint working",
             "deployment": "successful"
         })
+    
+    @app.get("/debug")
+    async def debug():
+        """Debug endpoint to check environment variables and configuration."""
+        env_vars = {
+            "OPENAI_API_KEY": "SET" if os.getenv("OPENAI_API_KEY") else "NOT SET",
+            "SERPAPI_API_KEY": "SET" if os.getenv("SERPAPI_API_KEY") else "NOT SET",
+            "MILVUS_URI": "SET" if os.getenv("MILVUS_URI") else "NOT SET",
+            "MILVUS_TOKEN": "SET" if os.getenv("MILVUS_TOKEN") else "NOT SET",
+            "ENVIRONMENT": os.getenv("ENVIRONMENT", "NOT SET"),
+            "LOG_LEVEL": os.getenv("LOG_LEVEL", "NOT SET")
+        }
+        
+        return JSONResponse(content={
+            "status": "debug_info",
+            "environment_variables": env_vars,
+            "import_error": str(e),
+            "python_path": sys.path[:3]  # First 3 paths
+        })
 
 # Vercel expects the FastAPI app to be available as 'app'
 # No additional code needed - your complete system is imported!

@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
 from fastapi.responses import HTMLResponse
+import os
 
 # Try to import optional dependencies with fallbacks
 try:
@@ -650,6 +651,69 @@ def get_client_id(request: Request) -> str:
     client_hash = hashlib.md5(f"{client_ip}:{user_agent}".encode()).hexdigest()[:16]
     
     return client_hash
+
+
+@app.get("/test-app")
+async def test_app():
+    """Test endpoint to check if the main app components are working."""
+    try:
+        # Check if we can access the main components
+        components_status = {
+            "config_available": CONFIG_AVAILABLE,
+            "logger_available": LOGGER_AVAILABLE,
+            "openai_available": OPENAI_AVAILABLE,
+            "milvus_available": MILVUS_AVAILABLE,
+            "query_parser_available": QUERY_PARSER_AVAILABLE,
+            "retrieval_available": RETRIEVAL_AVAILABLE,
+            "fallback_available": FALLBACK_AVAILABLE,
+            "response_generator_available": RESPONSE_GENERATOR_AVAILABLE,
+            "abuse_protection_available": ABUSE_PROTECTION_AVAILABLE
+        }
+        
+        # Check environment variables
+        env_status = {
+            "OPENAI_API_KEY": "SET" if os.getenv("OPENAI_API_KEY") else "NOT SET",
+            "SERPAPI_API_KEY": "SET" if os.getenv("SERPAPI_API_KEY") else "NOT SET",
+            "MILVUS_URI": "SET" if os.getenv("MILVUS_URI") else "NOT SET",
+            "MILVUS_TOKEN": "SET" if os.getenv("MILVUS_TOKEN") else "NOT SET"
+        }
+        
+        # Try to initialize key components
+        component_errors = {}
+        
+        try:
+            if CONFIG_AVAILABLE:
+                settings = get_settings()
+                component_errors["config"] = "OK"
+            else:
+                component_errors["config"] = "NOT AVAILABLE"
+        except Exception as e:
+            component_errors["config"] = f"ERROR: {str(e)}"
+        
+        try:
+            if MILVUS_AVAILABLE:
+                from src.vector_db.milvus_client import MilvusClient
+                milvus = MilvusClient()
+                component_errors["milvus"] = "OK"
+            else:
+                component_errors["milvus"] = "NOT AVAILABLE"
+        except Exception as e:
+            component_errors["milvus"] = f"ERROR: {str(e)}"
+        
+        return {
+            "status": "test_complete",
+            "components": components_status,
+            "environment": env_status,
+            "component_errors": component_errors,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        return {
+            "status": "test_failed",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 
 @app.get("/health", response_model=HealthResponse)

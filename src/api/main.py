@@ -36,7 +36,16 @@ try:
     LOGGER_AVAILABLE = True
 except ImportError:
     LOGGER_AVAILABLE = False
-    print("Warning: Logger not available")
+    # Fallback logger
+    import logging
+    app_logger = logging.getLogger(__name__)
+    app_logger.setLevel(logging.INFO)
+    if not app_logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        app_logger.addHandler(handler)
+    print("Warning: Logger not available - using fallback")
 
 # Try to import other modules with fallbacks
 try:

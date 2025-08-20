@@ -112,6 +112,7 @@ try:
     ABUSE_PROTECTION_AVAILABLE = True
 except ImportError:
     ABUSE_PROTECTION_AVAILABLE = False
+    abuse_protection = None
     print("Warning: Abuse protection not available")
 
 
@@ -890,9 +891,13 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         print("🔍 Essential components check passed")
         # 🔒 ABUSE PROTECTION: Check request before processing
         client_id = get_client_id(http_request)
-        is_allowed, security_error, security_report = await abuse_protection.check_request(
-            client_id, request.query, request.dict()
-        )
+        if ABUSE_PROTECTION_AVAILABLE and abuse_protection is not None:
+            is_allowed, security_error, security_report = await abuse_protection.check_request(
+                client_id, request.query, request.dict()
+            )
+        else:
+            # Skip abuse protection if not available
+            is_allowed, security_error, security_report = True, None, {"status": "skipped", "reason": "abuse_protection_not_available"}
         
         if not is_allowed:
             app_logger.warning(f"Request blocked for {client_id}: {security_error}")

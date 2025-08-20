@@ -12,8 +12,20 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import asyncio
-from src.utils.logger import app_logger
-from src.utils.config import get_settings
+# Fallback logger for import issues
+import logging
+app_logger = logging.getLogger(__name__)
+app_logger.setLevel(logging.INFO)
+if not app_logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    app_logger.addHandler(handler)
+
+try:
+    from src.utils.config import get_settings
+except ImportError:
+    get_settings = None
 
 
 @dataclass
@@ -286,7 +298,14 @@ class AbuseProtection:
     """Main abuse protection class that coordinates all security measures."""
     
     def __init__(self):
-        self.settings = get_settings()
+        if get_settings is not None:
+            try:
+                self.settings = get_settings()
+            except Exception as e:
+                app_logger.warning(f"Could not load settings: {e}")
+                self.settings = None
+        else:
+            self.settings = None
         
         # Initialize security configuration
         self.security_config = SecurityConfig(
@@ -484,5 +503,9 @@ class AbuseProtection:
         }
 
 
-# Global instance
-abuse_protection = AbuseProtection()
+# Global instance - create only if settings are available
+try:
+    abuse_protection = AbuseProtection()
+except Exception as e:
+    app_logger.warning(f"Could not create AbuseProtection instance: {e}")
+    abuse_protection = None

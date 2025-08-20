@@ -1122,6 +1122,41 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         natural_response = ""
         app_logger.info(f"🔍 Response generator available: {response_generator is not None}")
         
+        # Right after the "Response generator available: False" log, add this debug section:
+        if response_generator is None:
+            app_logger.info("🔄 Debugging ResponseGenerator initialization failure...")
+            
+            # Test individual components
+            try:
+                app_logger.info("🔄 Testing settings...")
+                from src.utils.config import get_settings
+                test_settings = get_settings()
+                app_logger.info("✅ Settings OK")
+                
+                app_logger.info("🔄 Testing OpenAI import...")
+                from openai import AsyncOpenAI
+                app_logger.info("✅ OpenAI import OK")
+                
+                app_logger.info("🔄 Testing OpenAI client creation...")
+                openai_key = os.getenv("OPENAI_API_KEY")
+                if openai_key:
+                    test_client = AsyncOpenAI(api_key=openai_key)
+                    app_logger.info("✅ OpenAI client creation OK")
+                else:
+                    app_logger.error("❌ OPENAI_API_KEY not found in environment")
+                
+                app_logger.info("🔄 Testing ResponseGenerator import...")
+                from src.processing.response_generator import ResponseGenerator
+                app_logger.info("✅ ResponseGenerator import OK")
+                
+                app_logger.info("🔄 Testing ResponseGenerator initialization...")
+                test_generator = ResponseGenerator()
+                app_logger.info("✅ ResponseGenerator initialization OK")
+                
+            except Exception as debug_error:
+                app_logger.error(f"❌ ResponseGenerator debug failed at: {debug_error}")
+
+
         # Try to use response generator if available
         if response_generator:
             try:
@@ -1143,15 +1178,33 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         if not natural_response:
             cuisine = parsed_query.get('cuisine_type', 'food')
             location = parsed_query.get('location', 'Manhattan')
-            if recommendations and not fallback_used:
-                top_dish = recommendations[0].get('dish_name', 'great dish')
-                top_restaurant = recommendations[0].get('restaurant_name', 'restaurant')
-                natural_response = f"Here are some excellent {cuisine} recommendations in {location}! I especially recommend the {top_dish} at {top_restaurant}."
-            elif recommendations and fallback_used:
-                natural_response = f"Here are some popular {cuisine} options in {location}!"
+            
+            if recommendations and len(recommendations) > 0:
+                # Create a richer response based on actual recommendations
+                if not fallback_used and recommendations[0].get('source') == 'vector_search':
+                    # We have real vector search results
+                    top_restaurants = []
+                    for rec in recommendations[:3]:  # Top 3
+                        rest_name = rec.get('restaurant_name', 'restaurant')
+                        dish_name = rec.get('dish_name', 'dish')
+                        if rest_name and dish_name:
+                            top_restaurants.append(f"{dish_name} at {rest_name}")
+                    
+                    if top_restaurants:
+                        if len(top_restaurants) == 1:
+                            natural_response = f"Based on our restaurant database, I found some excellent {cuisine} options in {location}! I highly recommend trying the {top_restaurants[0]}."
+                        else:
+                            restaurants_text = ", ".join(top_restaurants[:-1]) + f", and {top_restaurants[-1]}"
+                            natural_response = f"Based on our restaurant database, here are some top {cuisine} recommendations in {location}: {restaurants_text}."
+                    else:
+                        natural_response = f"I found some great {cuisine} restaurants in {location} from our curated database."
+                else:
+                    # Fallback data
+                    natural_response = f"Here are some popular {cuisine} options in {location} to get you started!"
             else:
-                natural_response = f"I found some {cuisine} recommendations for you in {location}."
-        
+                natural_response = f"Let me help you find some {cuisine} recommendations in {location}."
+
+
         app_logger.info(f"Query processed in {processing_time:.2f}s with {len(recommendations)} recommendations")
         
         return QueryResponse(

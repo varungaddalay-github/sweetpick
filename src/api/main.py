@@ -735,6 +735,7 @@ async def test_app():
             "retrieval_available": RETRIEVAL_AVAILABLE,
             "fallback_available": FALLBACK_AVAILABLE,
             "response_generator_available": RESPONSE_GENERATOR_AVAILABLE,
+            "response_generator_initialized": response_generator is not None,
             "abuse_protection_available": ABUSE_PROTECTION_AVAILABLE
         }
         
@@ -767,6 +768,17 @@ async def test_app():
                 component_errors["milvus"] = "NOT AVAILABLE"
         except Exception as e:
             component_errors["milvus"] = f"ERROR: {str(e)}"
+        
+        # Test response generator
+        try:
+            if RESPONSE_GENERATOR_AVAILABLE:
+                from src.processing.response_generator import ResponseGenerator
+                test_generator = ResponseGenerator()
+                component_errors["response_generator"] = f"OK (OpenAI: {test_generator.openai_available if hasattr(test_generator, 'openai_available') else 'Unknown'})"
+            else:
+                component_errors["response_generator"] = "NOT AVAILABLE"
+        except Exception as e:
+            component_errors["response_generator"] = f"ERROR: {str(e)}"
         
         return {
             "status": "test_complete",
@@ -1142,6 +1154,19 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         # Generate conversational response
         natural_response = ""
         app_logger.info(f"🔍 Response generator available: {response_generator is not None}")
+        
+        # Debug: Try to manually initialize response generator if it's None
+        if response_generator is None:
+            app_logger.info("🔄 Attempting manual response generator initialization...")
+            try:
+                from src.processing.response_generator import ResponseGenerator
+                response_generator = ResponseGenerator()
+                app_logger.info("✅ Manual response generator initialization successful!")
+            except Exception as e:
+                app_logger.error(f"❌ Manual response generator initialization failed: {e}")
+                app_logger.error(f"📋 Error type: {type(e).__name__}")
+                app_logger.error(f"📋 Full error details: {str(e)}")
+        
         if response_generator:
             try:
                 app_logger.info(f"🎯 Attempting to generate natural response for query: '{request.query}'")

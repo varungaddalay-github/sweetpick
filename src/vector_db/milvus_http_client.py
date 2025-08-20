@@ -277,7 +277,16 @@ class MilvusHTTPClient:
             ]
         }
         
-        return sample_dishes.get(cuisine.lower(), sample_dishes["italian"])[:limit]
+        # Handle None cuisine gracefully
+        if cuisine is None:
+            # Return a mix of different cuisines when no specific cuisine is requested
+            all_dishes = []
+            for cuisine_dishes in sample_dishes.values():
+                all_dishes.extend(cuisine_dishes)
+            return all_dishes[:limit]
+        
+        cuisine_key = cuisine.lower() if cuisine else "italian"
+        return sample_dishes.get(cuisine_key, sample_dishes["italian"])[:limit]
     
     async def test_connection(self) -> Dict[str, Any]:
         """Test connection to Milvus and discover API structure."""

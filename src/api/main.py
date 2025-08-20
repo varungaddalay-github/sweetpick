@@ -358,7 +358,7 @@ async def validate_query_scope(parsed_query: Dict[str, Any], original_query: str
                     
                     # Check if the neighborhood exists
                     neighborhood_exists = any(
-                        n.get('neighborhood', '').lower() == neighborhood.lower() 
+                        n.get('neighborhood', '').lower() == (neighborhood or '').lower() 
                         for n in neighborhoods
                     )
                     

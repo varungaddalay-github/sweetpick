@@ -1849,6 +1849,19 @@ def _extract_cards_from_text(text: str, location_hint: Optional[str]) -> List[Di
             name_part = name_part.split(".", 1)[1].strip() if "." in name_part else name_part
             name = name_part.replace("**", "").strip()
             reason = parts[1].strip() if len(parts) > 1 else None
+        elif ln[:2].isdigit() and "**" in ln:
+            # Format: "1. **Restaurant Name** - Description" (without the dash)
+            # Extract the bold text between ** markers
+            import re
+            bold_match = re.search(r'\*\*(.*?)\*\*', ln)
+            if bold_match:
+                name = bold_match.group(1).strip()
+                # Remove the number and restaurant name from the line to get the reason
+                reason_line = ln.split("**", 2)[-1].strip()
+                reason = reason_line if reason_line else None
+            else:
+                name = ln.strip(" -*#")
+                reason = None
         elif ":" in ln:
             parts = ln.split(":", 1)
             name = parts[0].strip(" -*#")

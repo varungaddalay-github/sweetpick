@@ -1128,17 +1128,33 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         
         # Generate conversational response
         natural_response = ""
+        app_logger.info(f"🔍 Response generator available: {response_generator is not None}")
         if response_generator:
             try:
+                app_logger.info(f"🎯 Attempting to generate natural response for query: '{request.query}'")
+                app_logger.info(f"📊 Query metadata: {query_metadata}")
+                app_logger.info(f"🍽️ Number of recommendations: {len(recommendations)}")
+                
                 natural_response = await response_generator.generate_conversational_response(
                     request.query, 
                     recommendations, 
                     query_metadata
                 )
+                
+                app_logger.info(f"✅ Generated natural response: '{natural_response[:100]}...' (length: {len(natural_response)})")
+                
             except Exception as e:
-                app_logger.error(f"Error generating natural response: {e}")
+                app_logger.error(f"❌ Error generating natural response: {e}")
+                app_logger.error(f"📋 Full error details: {type(e).__name__}: {str(e)}")
                 # Fallback to quick response
-                natural_response = response_generator.generate_quick_response(recommendations, query_metadata) if response_generator else ""
+                try:
+                    natural_response = response_generator.generate_quick_response(recommendations, query_metadata) if response_generator else ""
+                    app_logger.info(f"🔄 Fallback quick response generated: '{natural_response[:100]}...'")
+                except Exception as fallback_error:
+                    app_logger.error(f"❌ Even fallback response failed: {fallback_error}")
+                    natural_response = ""
+        else:
+            app_logger.warning("⚠️ Response generator not available - natural_response will be empty")
         
         app_logger.info(f"Query processed in {processing_time:.2f}s with {len(recommendations)} recommendations")
         

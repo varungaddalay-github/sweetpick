@@ -50,14 +50,24 @@ class ResponseGenerator:
     ) -> str:
         """Generate a natural language response using GPT-4o."""
         
+        app_logger.info(f"🎯 ResponseGenerator.generate_conversational_response called")
+        app_logger.info(f"📝 User query: '{user_query}'")
+        app_logger.info(f"🍽️ Recommendations count: {len(recommendations)}")
+        app_logger.info(f"📊 Query metadata: {query_metadata}")
+        
         # Check if OpenAI is available
         if not hasattr(self, 'openai_available') or not self.openai_available:
-            app_logger.warning("OpenAI not available, using template response")
-            return self._generate_template_response(user_query, recommendations, query_metadata)
+            app_logger.warning("❌ OpenAI not available, using template response")
+            template_response = self._generate_template_response(user_query, recommendations, query_metadata)
+            app_logger.info(f"📋 Template response generated: '{template_response[:100]}...'")
+            return template_response
+        
+        app_logger.info(f"✅ OpenAI is available, proceeding with GPT-4o generation")
         
         try:
             # Prepare context for GPT-4o
             context = self._prepare_context(user_query, recommendations, query_metadata)
+            app_logger.info(f"📋 Context prepared (length: {len(context)})")
             
             system_prompt = """You are a restaurant recommendation expert for SweetPick.
 
@@ -100,12 +110,19 @@ Keep it brief, friendly, and highlight the best 1-2 dishes. Maximum 3-4 sentence
                 temperature=0.7  # Slightly creative but consistent
             )
             
-            return response.choices[0].message.content.strip()
+            generated_response = response.choices[0].message.content.strip()
+            app_logger.info(f"✅ GPT-4o response generated: '{generated_response[:100]}...' (length: {len(generated_response)})")
+            return generated_response
             
         except Exception as e:
-            app_logger.error(f"Error generating conversational response: {e}")
+            app_logger.error(f"❌ Error generating conversational response: {e}")
+            app_logger.error(f"📋 Error type: {type(e).__name__}")
+            app_logger.error(f"📋 Error details: {str(e)}")
             # Fallback to template-based response
-            return self._generate_template_response(user_query, recommendations, query_metadata)
+            app_logger.info(f"🔄 Falling back to template response")
+            template_response = self._generate_template_response(user_query, recommendations, query_metadata)
+            app_logger.info(f"📋 Template fallback response: '{template_response[:100]}...'")
+            return template_response
     
     def _prepare_context(
         self, 

@@ -12,25 +12,43 @@ class ResponseGenerator:
     """Generate natural language responses from recommendation data."""
     
     def __init__(self):
+        app_logger.info("🔄 ResponseGenerator.__init__() called")
+        
         try:
+            app_logger.info("🔄 Attempting to get settings...")
             self.settings = get_settings()
+            app_logger.info("✅ Settings retrieved successfully")
+            
+            app_logger.info("🔄 Attempting to create OpenAI client...")
             self.client = AsyncOpenAI(api_key=self.settings.openai_api_key)
             self.openai_available = True
+            app_logger.info("✅ OpenAI client created successfully")
+            
         except Exception as e:
+            app_logger.error(f"❌ Error in ResponseGenerator initialization: {e}")
+            app_logger.error(f"📋 Error type: {type(e).__name__}")
+            
             # Fallback when settings are not available
+            app_logger.info("🔄 Attempting fallback initialization...")
             import os
             openai_key = os.getenv("OPENAI_API_KEY")
             if openai_key:
                 try:
+                    app_logger.info("🔄 Creating OpenAI client with environment variable...")
                     self.client = AsyncOpenAI(api_key=openai_key)
                     self.openai_available = True
-                except Exception:
+                    app_logger.info("✅ Fallback OpenAI client created successfully")
+                except Exception as fallback_error:
+                    app_logger.error(f"❌ Fallback OpenAI client creation failed: {fallback_error}")
                     self.openai_available = False
             else:
+                app_logger.warning("⚠️ No OpenAI API key found in environment variables")
                 self.openai_available = False
             
             if not self.openai_available:
-                print(f"Warning: OpenAI not available for response generation: {e}")
+                app_logger.warning(f"⚠️ OpenAI not available for response generation: {e}")
+        
+        app_logger.info(f"✅ ResponseGenerator initialization completed. OpenAI available: {self.openai_available}")
         
         # Response templates for consistency
         self.templates = {

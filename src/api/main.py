@@ -619,13 +619,26 @@ async def lifespan(app: FastAPI):
                 app_logger.error(f"Failed to initialize fallback handler: {e}")
         
         # Try to initialize response generator
+        response_generator = None  # Initialize to None first
+        app_logger.info(f"🔍 RESPONSE_GENERATOR_AVAILABLE: {RESPONSE_GENERATOR_AVAILABLE}")
+        
         if RESPONSE_GENERATOR_AVAILABLE:
             try:
+                app_logger.info("🔄 Attempting to import ResponseGenerator...")
                 from src.processing.response_generator import ResponseGenerator
+                app_logger.info("✅ ResponseGenerator imported successfully")
+                
+                app_logger.info("🔄 Attempting to create ResponseGenerator instance...")
                 response_generator = ResponseGenerator()
-                app_logger.info("✅ Response generator initialized")
+                app_logger.info("✅ Response generator initialized successfully")
+                
             except Exception as e:
-                app_logger.error(f"Failed to initialize response generator: {e}")
+                app_logger.error(f"❌ Failed to initialize response generator: {e}")
+                app_logger.error(f"📋 Error type: {type(e).__name__}")
+                app_logger.error(f"📋 Full error details: {str(e)}")
+                response_generator = None
+        else:
+            app_logger.warning("⚠️ RESPONSE_GENERATOR_AVAILABLE is False - response generator will not be initialized")
         
         app_logger.info("API startup completed")
         app_logger.info(f"🔍 Global variables after startup: milvus_client={milvus_client is not None}, query_parser={query_parser is not None}, retrieval_engine={retrieval_engine is not None}, fallback_handler={fallback_handler is not None}, response_generator={response_generator is not None}")

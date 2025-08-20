@@ -298,16 +298,16 @@ class MilvusHTTPClient:
                 "error": str(e)
             }
     
-                 async def has_collection(self, collection_name: str) -> bool:
-                 """Check if a collection exists."""
-                 try:
-                     collections = await self.list_collections()
-                     return collection_name in collections
-                 except Exception as e:
-                     app_logger.error(f"Error checking collection existence: {e}")
-                     return False
-             
-             async def _discover_api_endpoints(self) -> Dict[str, Any]:
+    async def has_collection(self, collection_name: str) -> bool:
+        """Check if a collection exists."""
+        try:
+            collections = await self.list_collections()
+            return collection_name in collections
+        except Exception as e:
+            app_logger.error(f"Error checking collection existence: {e}")
+            return False
+    
+    async def _discover_api_endpoints(self) -> Dict[str, Any]:
                  """Discover available API endpoints."""
                  endpoints_to_test = [
                      "/",

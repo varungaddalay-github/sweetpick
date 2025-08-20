@@ -1808,10 +1808,10 @@ def _clean_natural_response(text: str) -> str:
     
     for line in lines:
         # Stop when we hit a JSON block
-        if line.strip().startswith('{') and '"items"' in line:
+        if line.strip().startswith('{'):
             break
         # Stop when we hit a line that looks like JSON start
-        if line.strip().startswith('{') and ('"restaurant_name"' in line or '"items"' in line):
+        if line.strip().startswith('{'):
             break
         natural_lines.append(line)
     

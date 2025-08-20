@@ -13,20 +13,49 @@ except Exception as e:
     # Create a minimal fallback app
     from fastapi import FastAPI
     from fastapi.responses import JSONResponse
+    from fastapi.middleware.cors import CORSMiddleware
     
     app = FastAPI(title="Sweet Morsels - Fallback Mode")
     
+    # Add CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
     @app.get("/")
     async def root():
-        return {"message": "Sweet Morsels API - Fallback Mode", "status": "running"}
+        return JSONResponse(content={
+            "message": "Sweet Morsels API - Fallback Mode", 
+            "status": "running",
+            "version": "1.0.0"
+        })
     
     @app.get("/health")
     async def health():
-        return {"status": "healthy", "mode": "fallback"}
+        return JSONResponse(content={
+            "status": "healthy", 
+            "mode": "fallback",
+            "timestamp": "2024-01-01T00:00:00Z"
+        })
     
     @app.get("/error")
     async def show_error():
-        return {"error": str(e), "message": "Main app failed to load"}
+        return JSONResponse(content={
+            "error": str(e), 
+            "message": "Main app failed to load",
+            "type": "import_error"
+        })
+    
+    @app.get("/test")
+    async def test():
+        return JSONResponse(content={
+            "message": "Test endpoint working",
+            "deployment": "successful"
+        })
 
 # Vercel expects the FastAPI app to be available as 'app'
 # No additional code needed - your complete system is imported!

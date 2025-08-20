@@ -796,121 +796,6 @@ async def test_app():
         }
 
 
-@app.get("/test-milvus")
-async def test_milvus():
-    """Test endpoint specifically for Milvus configuration and connection."""
-    try:
-        # Check environment variables
-        milvus_uri = os.getenv("MILVUS_URI")
-        milvus_token = os.getenv("MILVUS_TOKEN")
-        
-        # Test Milvus HTTP client
-        client_test = {}
-        try:
-            if MILVUS_AVAILABLE:
-                from src.vector_db.milvus_http_client import MilvusHTTPClient
-                milvus_client = MilvusHTTPClient()
-                client_test["client_initialization"] = {
-                    "success": True,
-                    "client_type": "MilvusHTTPClient"
-                }
-                
-                # Test connection
-                try:
-                    connection_result = await milvus_client.test_connection()
-                    client_test["connection"] = connection_result
-                except Exception as e:
-                    client_test["connection"] = {
-                        "success": False,
-                        "error": str(e)
-                    }
-            else:
-                client_test["client_initialization"] = {
-                    "success": False,
-                    "error": "MILVUS_AVAILABLE is False"
-                }
-        except Exception as e:
-            client_test["client_initialization"] = {
-                "success": False,
-                "error": str(e)
-            }
-        
-        return {
-            "status": "milvus_http_test_complete",
-            "message": "Testing Milvus HTTP API client",
-            "environment_check": {
-                "MILVUS_URI": {
-                    "set": bool(milvus_uri),
-                    "value": milvus_uri[:20] + "..." if milvus_uri and len(milvus_uri) > 20 else milvus_uri,
-                    "valid_format": milvus_uri and milvus_uri.startswith("https://") if milvus_uri else False
-                },
-                "MILVUS_TOKEN": {
-                    "set": bool(milvus_token),
-                    "value": milvus_token[:10] + "..." if milvus_token and len(milvus_token) > 10 else milvus_token,
-                    "valid_format": milvus_token and len(milvus_token) > 20 if milvus_token else False
-                }
-            },
-            "client_test": client_test,
-            "explanation": {
-                "approach": "Using Milvus HTTP API instead of pymilvus Python client",
-                "advantages": [
-                    "No pymilvus installation required",
-                    "Better Vercel compatibility",
-                    "Standard HTTP requests",
-                    "Async support with httpx"
-                ],
-                "current_status": "HTTP client implemented with sample data fallback"
-            },
-            "current_capabilities": [
-                "✅ Milvus HTTP client available",
-                "✅ Environment variables configured",
-                "✅ HTTP requests to Milvus Cloud",
-                "✅ Sample data fallback",
-                "✅ Async operation support"
-            ],
-            "timestamp": datetime.now().isoformat()
-        }
-        
-
-        
-    except Exception as e:
-        return {
-            "status": "milvus_test_failed",
-            "error": str(e),
-            "timestamp": datetime.now().isoformat()
-        }
-
-
-@app.get("/health", response_model=HealthResponse)
-async def health_check():
-    """Health check endpoint."""
-    services_status = {}
-    
-    try:
-        # Check Milvus connection
-        if milvus_client:
-            collection_stats = await milvus_client.get_collection_stats()
-            services_status['milvus'] = 'healthy' if collection_stats else 'unhealthy'
-        else:
-            services_status['milvus'] = 'uninitialized'
-        
-        # Check other services
-        services_status['query_parser'] = 'healthy' if query_parser else 'uninitialized'
-        services_status['retrieval_engine'] = 'healthy' if retrieval_engine else 'uninitialized'
-        services_status['fallback_handler'] = 'healthy' if fallback_handler else 'uninitialized'
-        
-    except Exception as e:
-        app_logger.error(f"Health check error: {e}")
-        services_status['error'] = str(e)
-    
-    return HealthResponse(
-        status="healthy" if all(status == 'healthy' for status in services_status.values() if status != 'uninitialized') else "degraded",
-        timestamp=datetime.now().isoformat(),
-        version="1.0.0",
-        services=services_status
-    )
-
-
 @app.post("/query", response_model=QueryResponse)
 async def process_query(request: QueryRequest, background_tasks: BackgroundTasks, http_request: Request):
     """Main query endpoint for restaurant/dish recommendations."""
@@ -933,26 +818,32 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 query_type="fallback",
                 recommendations=[
                     {
+                        "id": "example_1",
                         "dish_name": "Margherita Pizza",
                         "restaurant_name": "Example Italian Restaurant",
                         "restaurant_id": "example_1",
                         "neighborhood": "Manhattan",
                         "cuisine_type": "Italian",
-                        "topic_mentions": 0,
-                        "topic_score": 0.0,
+                        "description": "Try the Margherita Pizza at Example Italian Restaurant",
                         "final_score": 0.8,
-                        "source": "fallback"
+                        "rating": 4.0,
+                        "price_range": "$$",
+                        "source": "fallback",
+                        "confidence": 0.5
                     },
                     {
+                        "id": "example_2",
                         "dish_name": "Spaghetti Carbonara",
                         "restaurant_name": "Sample Italian Place",
                         "restaurant_id": "example_2", 
                         "neighborhood": "Manhattan",
                         "cuisine_type": "Italian",
-                        "topic_mentions": 0,
-                        "topic_score": 0.0,
+                        "description": "Try the Spaghetti Carbonara at Sample Italian Place",
                         "final_score": 0.7,
-                        "source": "fallback"
+                        "rating": 4.2,
+                        "price_range": "$$$",
+                        "source": "fallback",
+                        "confidence": 0.5
                     }
                 ],
                 natural_response="I'm currently in fallback mode while the database is being set up. Here are some popular Italian dishes you might enjoy in Manhattan!",
@@ -963,14 +854,14 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             )
         
         print("🔍 Essential components check passed")
-        # 🔒 ABUSE PROTECTION: Check request before processing
+        
+        # Abuse protection check
         client_id = get_client_id(http_request)
         if ABUSE_PROTECTION_AVAILABLE and abuse_protection is not None:
             is_allowed, security_error, security_report = await abuse_protection.check_request(
                 client_id, request.query, request.dict()
             )
         else:
-            # Skip abuse protection if not available
             is_allowed, security_error, security_report = True, None, {"status": "skipped", "reason": "abuse_protection_not_available"}
         
         if not is_allowed:
@@ -1001,8 +892,14 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             text_lower = request.query.lower()
             if 'jersey city' in text_lower:
                 parsed_query['location'] = 'Jersey City'
+            elif 'manhattan' in text_lower:
+                parsed_query['location'] = 'Manhattan'
             if 'indian' in text_lower:
                 parsed_query['cuisine_type'] = 'Indian'
+            elif 'italian' in text_lower:
+                parsed_query['cuisine_type'] = 'Italian'
+            elif 'chinese' in text_lower:
+                parsed_query['cuisine_type'] = 'Chinese'
 
         # Heuristic fallback: infer location/cuisine from raw text if missing
         try:
@@ -1021,7 +918,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         except Exception:
             pass
         
-        # ✅ NEW: Validate query scope with choice offering
+        # Validate query scope with choice offering
         is_valid, choice_message = await validate_query_scope(parsed_query, request.query)
         if not is_valid:
             # Build cache key
@@ -1042,8 +939,8 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             return QueryResponse(
                 query=request.query,
                 query_type="out_of_scope_with_choice",
-                recommendations=cards,                # <-- cards now populate UI
-                natural_response=natural,             # <-- clean response without JSON
+                recommendations=cards,
+                natural_response=natural,
                 fallback_used=True,
                 fallback_reason="Out of scope query - using web search",
                 processing_time=(datetime.now() - start_time).total_seconds(),
@@ -1059,6 +956,10 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         
         # Get recommendations with fallback
         app_logger.info(f"🔍 Retrieval engine status: {retrieval_engine is not None}")
+        recommendations = []
+        fallback_used = False
+        fallback_reason = None
+        
         if retrieval_engine is not None:
             app_logger.info("🔍 Using retrieval engine for recommendations")
             recommendations, fallback_used, fallback_reason = await retrieval_engine.get_recommendations(
@@ -1066,16 +967,46 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             )
         else:
             app_logger.info("🔍 Retrieval engine is None, using direct Milvus HTTP client")
-            app_logger.info(f"🔍 Debug: retrieval_engine type: {type(retrieval_engine)}, value: {retrieval_engine}")
             # Use Milvus HTTP client directly for recommendations
             if MILVUS_AVAILABLE:
                 try:
                     from src.vector_db.milvus_http_client import MilvusHTTPClient
-                    milvus_client = MilvusHTTPClient()
-                    cuisine = parsed_query.get('cuisine_type', 'Indian')
-                    recommendations = await milvus_client.search_dishes_with_topics(cuisine, request.max_results or 10)
-                    fallback_used = False
-                    fallback_reason = "Direct Milvus HTTP client"
+                    milvus_client_instance = MilvusHTTPClient()
+                    cuisine = parsed_query.get('cuisine_type', 'Italian')
+                    location = parsed_query.get('location', 'Manhattan')
+                    
+                    # Get raw results from Milvus
+                    raw_recommendations = await milvus_client_instance.search_dishes_with_topics(cuisine, request.max_results or 10)
+                    
+                    # Format raw results for UI
+                    if raw_recommendations:
+                        formatted_recommendations = []
+                        for i, rec in enumerate(raw_recommendations):
+                            formatted_rec = {
+                                "id": rec.get('restaurant_id', f"rec_{i}"),
+                                "restaurant_name": rec.get('restaurant_name', 'Restaurant'),
+                                "dish_name": rec.get('dish_name', 'Dish'),
+                                "cuisine_type": rec.get('cuisine_type', cuisine),
+                                "neighborhood": rec.get('neighborhood', location),
+                                "description": f"Try the {rec.get('dish_name', 'dish')} at {rec.get('restaurant_name', 'this restaurant')} in {rec.get('neighborhood', location)}. Highly recommended!",
+                                "final_score": float(rec.get('final_score', 0.8)),
+                                "rating": 4.5,  # Default since your data doesn't have this
+                                "price_range": "$$",  # Default since your data doesn't have this
+                                "source": "vector_search",  # This tells UI it's real data
+                                "confidence": float(rec.get('final_score', 0.8)),
+                                # Keep original fields for compatibility
+                                "topic_score": float(rec.get('topic_score', 0.0)),
+                                "recommendation_score": float(rec.get('recommendation_score', 0.8))
+                            }
+                            formatted_recommendations.append(formatted_rec)
+                        recommendations = formatted_recommendations
+                        fallback_used = False
+                        fallback_reason = None
+                    else:
+                        recommendations = []
+                        fallback_used = True
+                        fallback_reason = "No vector search results found"
+                        
                 except Exception as e:
                     app_logger.error(f"Error using Milvus HTTP client: {e}")
                     recommendations = []
@@ -1084,27 +1015,8 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             else:
                 recommendations = []
                 fallback_used = True
-                fallback_reason = "Retrieval engine not available"
-        # Add this formatting step after getting raw results:
-       
-        if recommendations:
-            formatted_recommendations = []
-            for i, rec in enumerate(recommendations):
-                formatted_rec = {
-                    "id": rec.get('restaurant_id', f"rec_{i}"),
-                    "restaurant_name": rec.get('restaurant_name', 'Restaurant'),
-                    "dish_name": rec.get('dish_name', 'Dish'),
-                    "cuisine_type": rec.get('cuisine_type', cuisine),
-                    "neighborhood": rec.get('neighborhood', 'Manhattan'),
-                    "description": f"Try the {rec.get('dish_name', 'dish')} at {rec.get('restaurant_name', 'this restaurant')}",
-                    "final_score": float(rec.get('final_score', 0.8)),
-                    "rating": 4.5,  # Default since your data doesn't have this
-                    "price_range": "$$",  # Default since your data doesn't have this
-                    "source": "vector_search",  # This tells UI it's real data
-                    "confidence": float(rec.get('final_score', 0.8))
-                }
-                formatted_recommendations.append(formatted_rec)
-            recommendations = formatted_recommendations
+                fallback_reason = "Milvus HTTP client not available"
+        
         # Apply fallback if needed
         if not recommendations and not fallback_used and fallback_handler is not None:
             recommendations, fallback_used, fallback_reason = await fallback_handler.execute_fallback_strategy(
@@ -1144,6 +1056,42 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                     web_search_available=True
                 )
         
+        # Ensure we have some recommendations
+        if not recommendations:
+            # Use fallback recommendations with proper formatting
+            cuisine = parsed_query.get('cuisine_type', 'Italian')
+            location = parsed_query.get('location', 'Manhattan')
+            recommendations = [
+                {
+                    "id": "fallback_1",
+                    "restaurant_name": "Popular Local Spot",
+                    "dish_name": f"Signature {cuisine} Dish",
+                    "cuisine_type": cuisine,
+                    "neighborhood": location,
+                    "description": f"A well-loved {cuisine} restaurant with great reviews in {location}.",
+                    "final_score": 0.7,
+                    "rating": 4.0,
+                    "price_range": "$$",
+                    "source": "fallback",
+                    "confidence": 0.5
+                },
+                {
+                    "id": "fallback_2", 
+                    "restaurant_name": "Neighborhood Favorite",
+                    "dish_name": f"Classic {cuisine} Specialty",
+                    "cuisine_type": cuisine,
+                    "neighborhood": location, 
+                    "description": f"Known for authentic {cuisine} cuisine and friendly service in {location}.",
+                    "final_score": 0.6,
+                    "rating": 4.2,
+                    "price_range": "$$$",
+                    "source": "fallback",
+                    "confidence": 0.5
+                }
+            ]
+            fallback_used = True
+            fallback_reason = "No recommendations available - using fallback"
+        
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
         stats['response_times'].append(processing_time)
@@ -1153,7 +1101,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             confidence_score = retrieval_engine.calculate_confidence(recommendations, parsed_query)
         else:
             # Simple confidence calculation
-            confidence_score = 0.8 if recommendations else 0.3
+            confidence_score = 0.8 if recommendations and not fallback_used else 0.5
         
         # Update cache statistics
         if fallback_used:
@@ -1174,70 +1122,43 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         natural_response = ""
         app_logger.info(f"🔍 Response generator available: {response_generator is not None}")
         
-        # Debug: Try to manually initialize response generator if it's None
-        if response_generator is None:
-            app_logger.info("🔄 Attempting manual response generator initialization...")
-            try:
-                from src.processing.response_generator import ResponseGenerator
-                response_generator = ResponseGenerator()
-                app_logger.info("✅ Manual response generator initialization successful!")
-            except Exception as e:
-                app_logger.error(f"❌ Manual response generator initialization failed: {e}")
-                app_logger.error(f"📋 Error type: {type(e).__name__}")
-                app_logger.error(f"📋 Full error details: {str(e)}")
-        
+        # Try to use response generator if available
         if response_generator:
             try:
                 app_logger.info(f"🎯 Attempting to generate natural response for query: '{request.query}'")
-                app_logger.info(f"📊 Query metadata: {query_metadata}")
-                app_logger.info(f"🍽️ Number of recommendations: {len(recommendations)}")
-                
                 natural_response = await response_generator.generate_conversational_response(
                     request.query, 
                     recommendations, 
                     query_metadata
                 )
-                
-                app_logger.info(f"✅ Generated natural response: '{natural_response[:100]}...' (length: {len(natural_response)})")
+                app_logger.info(f"✅ Generated natural response: '{natural_response[:100]}...'")
                 
             except Exception as e:
                 app_logger.error(f"❌ Error generating natural response: {e}")
-                app_logger.error(f"📋 Full error details: {type(e).__name__}: {str(e)}")
-                # Fallback to quick response
-                try:
-                    natural_response = response_generator.generate_quick_response(recommendations, query_metadata) if response_generator else ""
-                    app_logger.info(f"🔄 Fallback quick response generated: '{natural_response[:100]}...'")
-                except Exception as fallback_error:
-                    app_logger.error(f"❌ Even fallback response failed: {fallback_error}")
-                    natural_response = ""
+                natural_response = ""
         else:
-            app_logger.warning("⚠️ Response generator not available - natural_response will be empty")
+            app_logger.warning("⚠️ Response generator not available")
+        
+        # Fallback natural response if empty
+        if not natural_response:
+            cuisine = parsed_query.get('cuisine_type', 'food')
+            location = parsed_query.get('location', 'Manhattan')
+            if recommendations and not fallback_used:
+                top_dish = recommendations[0].get('dish_name', 'great dish')
+                top_restaurant = recommendations[0].get('restaurant_name', 'restaurant')
+                natural_response = f"Here are some excellent {cuisine} recommendations in {location}! I especially recommend the {top_dish} at {top_restaurant}."
+            elif recommendations and fallback_used:
+                natural_response = f"Here are some popular {cuisine} options in {location}!"
+            else:
+                natural_response = f"I found some {cuisine} recommendations for you in {location}."
         
         app_logger.info(f"Query processed in {processing_time:.2f}s with {len(recommendations)} recommendations")
-        
-        # # Debug: Log the structure of recommendations
-        # if recommendations:
-        #     app_logger.info(f"First recommendation structure: {list(recommendations[0].keys())}")
-        #     app_logger.info(f"First recommendation sample: {recommendations[0]}")
-            
-        #     # Check for non-serializable objects and convert numpy types
-        #     for i, rec in enumerate(recommendations):
-        #         for key, value in rec.items():
-        #             # Convert numpy types to native Python types
-        #             if hasattr(value, 'item'):  # numpy scalar
-        #                 recommendations[i][key] = value.item()
-        #             elif hasattr(value, 'tolist'):  # numpy array
-        #                 recommendations[i][key] = value.tolist()
-        #             elif not isinstance(value, (str, int, float, bool, list, dict, type(None))):
-        #                 app_logger.error(f"Non-serializable value in recommendation {i}, key '{key}': {type(value)} = {value}")
-        #                 # Convert to string as fallback
-        #                 recommendations[i][key] = str(value)
         
         return QueryResponse(
             query=request.query,
             query_type=query_type,
             recommendations=recommendations,
-            natural_response=natural_response,  # Add this line
+            natural_response=natural_response,
             fallback_used=fallback_used,
             fallback_reason=fallback_reason,
             processing_time=processing_time,
@@ -1268,6 +1189,39 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             status_code=500, 
             detail=f"Error processing query: {str(e)} | Type: {type(e).__name__} | Check /test-app for component status"
         )
+
+
+
+@app.get("/health", response_model=HealthResponse)
+async def health_check():
+    """Health check endpoint."""
+    services_status = {}
+    
+    try:
+        # Check Milvus connection
+        if milvus_client:
+            collection_stats = await milvus_client.get_collection_stats()
+            services_status['milvus'] = 'healthy' if collection_stats else 'unhealthy'
+        else:
+            services_status['milvus'] = 'uninitialized'
+        
+        # Check other services
+        services_status['query_parser'] = 'healthy' if query_parser else 'uninitialized'
+        services_status['retrieval_engine'] = 'healthy' if retrieval_engine else 'uninitialized'
+        services_status['fallback_handler'] = 'healthy' if fallback_handler else 'uninitialized'
+        
+    except Exception as e:
+        app_logger.error(f"Health check error: {e}")
+        services_status['error'] = str(e)
+    
+    return HealthResponse(
+        status="healthy" if all(status == 'healthy' for status in services_status.values() if status != 'uninitialized') else "degraded",
+        timestamp=datetime.now().isoformat(),
+        version="1.0.0",
+        services=services_status
+    )
+
+
 
 
 @app.post("/query/web-search", response_model=QueryResponse)
@@ -1654,7 +1608,7 @@ async def run_data_collection():
 async def root():
     """Root endpoint with API information."""
     return {
-        "message": "Sweet Morsels Restaurant Recommendation API",
+        "message": "Sweet Pick Restaurant Recommendation API",
         "version": "1.0.0",
         "endpoints": {
             "POST /query": "Get restaurant/dish recommendations",

@@ -308,21 +308,21 @@ class MilvusHTTPClient:
             return False
     
     async def _discover_api_endpoints(self) -> Dict[str, Any]:
-                 """Discover available API endpoints."""
-                 endpoints_to_test = [
-                     "/",
-                     "/health",
-                     "/v1",
-                     "/v2",
-                     "/api",
-                     "/api/v1",
-                     "/v1/vector",
-                     "/v1/vector/collections",
-                     "/v2/vectordb",
-                     "/v1/collections",
-                     "/v2/vectordb/collections/list",
-                     "/api/v1/collections"
-                 ]
+        """Discover available API endpoints."""
+        endpoints_to_test = [
+            "/",
+            "/health",
+            "/v1",
+            "/v2",
+            "/api",
+            "/api/v1",
+            "/v1/vector",
+            "/v1/vector/collections",
+            "/v2/vectordb",
+            "/v1/collections",
+            "/v2/vectordb/collections/list",
+            "/api/v1/collections"
+        ]
         
         results = {}
         for endpoint in endpoints_to_test:

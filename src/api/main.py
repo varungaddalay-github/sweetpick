@@ -716,6 +716,148 @@ async def test_app():
         }
 
 
+@app.get("/test-milvus")
+async def test_milvus():
+    """Test endpoint specifically for Milvus configuration and connection."""
+    try:
+        # Check environment variables
+        milvus_uri = os.getenv("MILVUS_URI")
+        milvus_token = os.getenv("MILVUS_TOKEN")
+        
+        env_check = {
+            "MILVUS_URI": {
+                "set": bool(milvus_uri),
+                "value": milvus_uri[:20] + "..." if milvus_uri and len(milvus_uri) > 20 else milvus_uri,
+                "valid_format": milvus_uri and milvus_uri.startswith("https://") if milvus_uri else False
+            },
+            "MILVUS_TOKEN": {
+                "set": bool(milvus_token),
+                "value": milvus_token[:10] + "..." if milvus_token and len(milvus_token) > 10 else milvus_token,
+                "valid_format": milvus_token and len(milvus_token) > 20 if milvus_token else False
+            }
+        }
+        
+        # Test Milvus import
+        import_test = {}
+        try:
+            import pymilvus
+            import_test["pymilvus_import"] = {
+                "success": True,
+                "version": pymilvus.__version__
+            }
+        except ImportError as e:
+            import_test["pymilvus_import"] = {
+                "success": False,
+                "error": str(e)
+            }
+        
+        # Test Milvus client initialization
+        client_test = {}
+        try:
+            if MILVUS_AVAILABLE:
+                from src.vector_db.milvus_client import MilvusClient
+                milvus_client = MilvusClient()
+                client_test["client_initialization"] = {
+                    "success": True,
+                    "client_type": type(milvus_client).__name__
+                }
+                
+                # Test connection
+                try:
+                    # Try to get collection stats to test connection
+                    stats = milvus_client.get_collection_stats()
+                    client_test["connection"] = {
+                        "success": True,
+                        "collections_found": len(stats) if stats else 0
+                    }
+                except Exception as e:
+                    client_test["connection"] = {
+                        "success": False,
+                        "error": str(e)
+                    }
+            else:
+                client_test["client_initialization"] = {
+                    "success": False,
+                    "error": "MILVUS_AVAILABLE is False"
+                }
+        except Exception as e:
+            client_test["client_initialization"] = {
+                "success": False,
+                "error": str(e)
+            }
+        
+        # Test basic Milvus operations
+        operations_test = {}
+        try:
+            if MILVUS_AVAILABLE and client_test.get("client_initialization", {}).get("success"):
+                from src.vector_db.milvus_client import MilvusClient
+                milvus_client = MilvusClient()
+                
+                # Test listing collections
+                try:
+                    collections = milvus_client.list_collections()
+                    operations_test["list_collections"] = {
+                        "success": True,
+                        "collections": collections
+                    }
+                except Exception as e:
+                    operations_test["list_collections"] = {
+                        "success": False,
+                        "error": str(e)
+                    }
+                
+                # Test search operation (if collections exist)
+                if operations_test.get("list_collections", {}).get("success") and operations_test["list_collections"]["collections"]:
+                    try:
+                        # Try a simple search
+                        results = milvus_client.search_dishes_with_topics(cuisine="Italian", limit=1)
+                        operations_test["search_operation"] = {
+                            "success": True,
+                            "results_count": len(results) if results else 0
+                        }
+                    except Exception as e:
+                        operations_test["search_operation"] = {
+                            "success": False,
+                            "error": str(e)
+                        }
+                else:
+                    operations_test["search_operation"] = {
+                        "success": False,
+                        "error": "No collections available for search test"
+                    }
+            else:
+                operations_test["list_collections"] = {
+                    "success": False,
+                    "error": "Client not available"
+                }
+        except Exception as e:
+            operations_test["general"] = {
+                "success": False,
+                "error": str(e)
+            }
+        
+        return {
+            "status": "milvus_test_complete",
+            "environment_check": env_check,
+            "import_test": import_test,
+            "client_test": client_test,
+            "operations_test": operations_test,
+            "timestamp": datetime.now().isoformat(),
+            "recommendations": {
+                "missing_token": "Add MILVUS_TOKEN environment variable" if not milvus_token else None,
+                "invalid_uri": "Check MILVUS_URI format (should start with https://)" if milvus_uri and not milvus_uri.startswith("https://") else None,
+                "connection_issue": "Check your Milvus Cloud cluster status" if env_check["MILVUS_URI"]["set"] and env_check["MILVUS_TOKEN"]["set"] and not client_test.get("connection", {}).get("success") else None
+            }
+        }
+        
+    except Exception as e:
+        return {
+            "status": "milvus_test_failed",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
+
+
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint."""

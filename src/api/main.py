@@ -245,13 +245,14 @@ async def suggest_alternatives_with_choice(
             # Append this section
             prompt += """
 
-Include a compact JSON block after your brief message with this shape:
+After your natural language response, include a JSON block on a new line with this exact format:
 {
   "items": [
     {"restaurant_name": "string", "dish": "string or null", "reason": "string", "location": "string (prefer {unsupported_location})", "rating": "number or null"}
   ]
 }
-Only one JSON block. Keep item fields short.
+
+Keep the natural language response and JSON block completely separate.
 """
             
         elif unsupported_cuisine:
@@ -275,13 +276,14 @@ Only one JSON block. Keep item fields short.
             # Append this section
             prompt += """
 
-Include a compact JSON block after your brief message with this shape:
+After your natural language response, include a JSON block on a new line with this exact format:
 {
   "items": [
     {"restaurant_name": "string", "dish": "string or null", "reason": "string", "location": "string (prefer {unsupported_location})", "rating": "number or null"}
   ]
 }
-Only one JSON block. Keep item fields short.
+
+Keep the natural language response and JSON block completely separate.
 """
         
         else:
@@ -1777,12 +1779,24 @@ Focus on the specific dish mentioned in the query. Be helpful and provide realis
 
 def _clean_natural_response(text: str) -> str:
     """Clean natural response by removing JSON blocks."""
-    # Remove JSON blocks
     import re
-    # Remove JSON objects/arrays
-    cleaned = re.sub(r'```json\s*\n.*?\n```', '', text, flags=re.DOTALL)
-    cleaned = re.sub(r'\{.*?\}', '', cleaned, flags=re.DOTALL)
-    cleaned = re.sub(r'\[.*?\]', '', cleaned, flags=re.DOTALL)
+    
+    # First, try to find and remove the JSON block that comes after the natural text
+    # Look for the pattern: natural text followed by JSON block
+    lines = text.split('\n')
+    natural_lines = []
+    
+    for line in lines:
+        # Stop when we hit a JSON block
+        if line.strip().startswith('{') or line.strip().startswith('['):
+            break
+        # Stop when we hit a line that looks like JSON (contains quotes and commas)
+        if '"' in line and ',' in line and ('{' in line or '[' in line):
+            break
+        natural_lines.append(line)
+    
+    # Join the natural lines
+    cleaned = '\n'.join(natural_lines)
     
     # Clean up extra whitespace and newlines
     cleaned = re.sub(r'\n\s*\n', '\n', cleaned)

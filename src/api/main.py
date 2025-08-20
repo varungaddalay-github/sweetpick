@@ -68,11 +68,16 @@ except ImportError:
     print("Warning: Sentiment analyzer not available")
 
 try:
+    import pymilvus
     from src.vector_db.milvus_client import MilvusClient
     MILVUS_AVAILABLE = True
-except ImportError:
+    print("✅ Milvus client available")
+except ImportError as e:
     MILVUS_AVAILABLE = False
-    print("Warning: Milvus client not available")
+    print(f"Warning: Milvus client not available - {e}")
+except Exception as e:
+    MILVUS_AVAILABLE = False
+    print(f"Warning: Milvus client error - {e}")
 
 try:
     from src.query_processing.query_parser import QueryParser
@@ -724,6 +729,28 @@ async def test_milvus():
         milvus_uri = os.getenv("MILVUS_URI")
         milvus_token = os.getenv("MILVUS_TOKEN")
         
+        # Test basic pymilvus import first
+        basic_import_test = {}
+        try:
+            import pymilvus
+            basic_import_test["pymilvus_basic"] = {
+                "success": True,
+                "version": pymilvus.__version__,
+                "module_path": pymilvus.__file__
+            }
+        except ImportError as e:
+            basic_import_test["pymilvus_basic"] = {
+                "success": False,
+                "error": str(e),
+                "suggestion": "Try reinstalling pymilvus with: pip install pymilvus==2.2.4"
+            }
+        except Exception as e:
+            basic_import_test["pymilvus_basic"] = {
+                "success": False,
+                "error": str(e),
+                "type": type(e).__name__
+            }
+        
         env_check = {
             "MILVUS_URI": {
                 "set": bool(milvus_uri),
@@ -838,6 +865,7 @@ async def test_milvus():
         
         return {
             "status": "milvus_test_complete",
+            "basic_import_test": basic_import_test,
             "environment_check": env_check,
             "import_test": import_test,
             "client_test": client_test,
@@ -846,7 +874,8 @@ async def test_milvus():
             "recommendations": {
                 "missing_token": "Add MILVUS_TOKEN environment variable" if not milvus_token else None,
                 "invalid_uri": "Check MILVUS_URI format (should start with https://)" if milvus_uri and not milvus_uri.startswith("https://") else None,
-                "connection_issue": "Check your Milvus Cloud cluster status" if env_check["MILVUS_URI"]["set"] and env_check["MILVUS_TOKEN"]["set"] and not client_test.get("connection", {}).get("success") else None
+                "connection_issue": "Check your Milvus Cloud cluster status" if env_check["MILVUS_URI"]["set"] and env_check["MILVUS_TOKEN"]["set"] and not client_test.get("connection", {}).get("success") else None,
+                "pymilvus_install": "pymilvus installation failed - check Vercel build logs" if not basic_import_test.get("pymilvus_basic", {}).get("success") else None
             }
         }
         

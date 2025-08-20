@@ -19,8 +19,8 @@ if PYDANTIC_AVAILABLE:
         """Application settings loaded from environment variables."""
         
         # API Keys
-        openai_api_key: str = Field(..., description="OpenAI API key")
-        serpapi_key: str = Field(..., description="SerpAPI key")
+        openai_api_key: str = Field("", description="OpenAI API key")
+        serpapi_key: str = Field("", description="SerpAPI key")
         yelp_api_key: Optional[str] = Field(None, description="Yelp API key for direct Yelp Search API access")
         
         # Milvus Cloud Configuration

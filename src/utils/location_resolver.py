@@ -148,6 +148,39 @@ class LocationResolver:
                 confidence=mapping["confidence"]
             )
         
+        # Check for compound location strings (city + neighborhood)
+        # Split the location and try to find both city and neighborhood components
+        location_words = location_lower.split()
+        if len(location_words) >= 2:
+            # Try to find a city and neighborhood combination
+            for i in range(len(location_words)):
+                # Try different combinations of words
+                for j in range(i + 1, len(location_words) + 1):
+                    potential_city = " ".join(location_words[:i])
+                    potential_neighborhood = " ".join(location_words[i:j])
+                    remaining = " ".join(location_words[j:])
+                    
+                    # Check if we have a valid city and neighborhood combination
+                    if (potential_city in self.supported_locations and 
+                        self.supported_locations[potential_city]["type"] == "city" and
+                        potential_neighborhood in self.supported_locations and
+                        self.supported_locations[potential_neighborhood]["type"] == "neighborhood"):
+                        
+                        city_mapping = self.supported_locations[potential_city]
+                        neighborhood_mapping = self.supported_locations[potential_neighborhood]
+                        
+                        # Verify they belong to the same city
+                        if city_mapping["parent_city"] == neighborhood_mapping["parent_city"]:
+                            app_logger.info(f"✅ Compound location found: {location_str} -> {city_mapping['parent_city']} + {potential_neighborhood} (confidence: {neighborhood_mapping['confidence']})")
+                            
+                            return LocationInfo(
+                                original_location=location_str,
+                                resolved_city=city_mapping["parent_city"],
+                                neighborhood=potential_neighborhood,
+                                location_type="neighborhood",
+                                confidence=neighborhood_mapping["confidence"]
+                            )
+        
         # Try partial matches for common variations
         for known_location, mapping in self.supported_locations.items():
             if (location_lower in known_location or 

@@ -4,20 +4,104 @@ Query parser for extracting entities and intent from user queries.
 import re
 import json
 from typing import Dict, List, Optional, Any
-from openai import AsyncOpenAI
-from src.utils.config import get_settings
-from src.utils.logger import app_logger
-from src.utils.location_resolver import location_resolver
-from src.data_collection.cache_manager import CacheManager
+
+# Try to import OpenAI with fallback
+try:
+    from openai import AsyncOpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    AsyncOpenAI = None
+    print("Warning: OpenAI not available")
+
+# Try to import settings with fallback
+try:
+    from src.utils.config import get_settings
+    CONFIG_AVAILABLE = True
+except ImportError:
+    CONFIG_AVAILABLE = False
+    get_settings = None
+    print("Warning: Config not available")
+
+# Try to import logger with fallback
+try:
+    from src.utils.logger import app_logger
+    LOGGER_AVAILABLE = True
+except ImportError:
+    LOGGER_AVAILABLE = False
+    # Fallback logger
+    import logging
+    app_logger = logging.getLogger(__name__)
+    app_logger.setLevel(logging.INFO)
+    if not app_logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        app_logger.addHandler(handler)
+    print("Warning: Logger not available - using fallback")
+
+# Try to import location resolver with fallback
+try:
+    from src.utils.location_resolver import location_resolver
+    LOCATION_RESOLVER_AVAILABLE = True
+except ImportError:
+    LOCATION_RESOLVER_AVAILABLE = False
+    location_resolver = None
+    print("Warning: Location resolver not available")
+
+# Try to import cache manager with fallback
+try:
+    from src.data_collection.cache_manager import CacheManager
+    CACHE_MANAGER_AVAILABLE = True
+except ImportError:
+    CACHE_MANAGER_AVAILABLE = False
+    CacheManager = None
+    print("Warning: Cache manager not available")
 
 
 class QueryParser:
     """Parse user queries to extract entities and intent."""
     
     def __init__(self):
-        self.settings = get_settings()
-        self.client = AsyncOpenAI(api_key=self.settings.openai_api_key)
-        self.cache = CacheManager()
+        # Initialize settings with fallback
+        if CONFIG_AVAILABLE and get_settings:
+            self.settings = get_settings()
+        else:
+            # Create a minimal settings object
+            class MinimalSettings:
+                def __init__(self):
+                    self.openai_api_key = None
+                    self.supported_cities = ["Manhattan", "Jersey City", "Hoboken"]
+                    self.supported_cuisines = ["Italian", "Indian", "Chinese", "American", "Mexican"]
+            self.settings = MinimalSettings()
+        
+        # Initialize OpenAI client with fallback
+        if OPENAI_AVAILABLE and AsyncOpenAI and hasattr(self.settings, 'openai_api_key') and self.settings.openai_api_key:
+            try:
+                self.client = AsyncOpenAI(api_key=self.settings.openai_api_key)
+                self.openai_available = True
+            except Exception as e:
+                app_logger.warning(f"Failed to initialize OpenAI client: {e}")
+                self.client = None
+                self.openai_available = False
+        else:
+            self.client = None
+            self.openai_available = False
+            app_logger.warning("OpenAI client not available")
+        
+        # Initialize cache manager with fallback
+        if CACHE_MANAGER_AVAILABLE and CacheManager:
+            try:
+                self.cache = CacheManager()
+                self.cache_available = True
+            except Exception as e:
+                app_logger.warning(f"Failed to initialize cache manager: {e}")
+                self.cache = None
+                self.cache_available = False
+        else:
+            self.cache = None
+            self.cache_available = False
+            app_logger.warning("Cache manager not available")
         
         # Enhanced system prompt
         self.system_prompt = """You are an expert query parser for a comprehensive restaurant recommendation system. Your role is to accurately extract structured information from natural language restaurant queries while maintaining high precision and appropriate confidence scoring.
@@ -187,12 +271,20 @@ Return valid JSON with this exact structure:
     async def parse_query(self, query: str) -> Dict[str, Any]:
         """Parse user query to extract entities and intent."""
         try:
-            # Redis cache check (keyed by raw query)
+            # Define cache key for potential use
             cache_key = f"parsed_query:{(query or '').strip().lower()}"
-            cached = await self.cache.get_json(cache_key)
-            if cached:
-                app_logger.info("🧠 Parsed query cache hit")
-                return cached
+            
+            # Redis cache check (keyed by raw query) - with fallback
+            if self.cache_available and self.cache:
+                try:
+                    cached = await self.cache.get_json(cache_key)
+                    if cached:
+                        app_logger.info("🧠 Parsed query cache hit")
+                        return cached
+                except Exception as e:
+                    app_logger.warning(f"Cache check failed: {e}")
+            else:
+                app_logger.info("🧠 Cache not available, skipping cache check")
             app_logger.info("🧠 Parsed query cache miss")
             
             # Try OpenAI parsing first
@@ -200,16 +292,24 @@ Return valid JSON with this exact structure:
             if parsed:
                 # Resolve location using our location resolver
                 parsed = self._resolve_location_in_parsed_query(parsed)
-                # Store in cache for 6 hours
-                await self.cache.set_json(cache_key, parsed, expire=6*3600)
+                # Store in cache for 6 hours - with fallback
+                if self.cache_available and self.cache:
+                    try:
+                        await self.cache.set_json(cache_key, parsed, expire=6*3600)
+                    except Exception as e:
+                        app_logger.warning(f"Failed to cache parsed query: {e}")
                 return parsed
             
             # Fallback to regex parsing
             parsed = self._parse_with_regex(query)
             # Resolve location for regex parsing too
             parsed = self._resolve_location_in_parsed_query(parsed)
-            # Store in cache for 2 hours
-            await self.cache.set_json(cache_key, parsed, expire=2*3600)
+            # Store in cache for 2 hours - with fallback
+            if self.cache_available and self.cache:
+                try:
+                    await self.cache.set_json(cache_key, parsed, expire=2*3600)
+                except Exception as e:
+                    app_logger.warning(f"Failed to cache regex parsed query: {e}")
             return parsed
             
         except Exception as e:
@@ -218,6 +318,10 @@ Return valid JSON with this exact structure:
     
     async def _parse_with_openai(self, query: str) -> Optional[Dict[str, Any]]:
         """Parse query using OpenAI with enhanced prompts."""
+        if not self.openai_available or not self.client:
+            app_logger.warning("OpenAI not available, skipping OpenAI parsing")
+            return None
+            
         try:
             user_prompt = f"""Parse the following restaurant query and extract all relevant entities:
 
@@ -239,8 +343,11 @@ Extract the following information based on the system guidelines:
 
 Analyze the query context carefully and return the structured JSON response with appropriate confidence scores for each field."""
             
+            # Get model from settings with fallback
+            model = getattr(self.settings, 'openai_model', 'gpt-4o')
+            
             response = await self.client.chat.completions.create(
-                model=self.settings.openai_model,
+                model=model,
                 messages=[
                     {
                         "role": "system",
@@ -703,6 +810,9 @@ Analyze the query context carefully and return the structured JSON response with
         except (ValueError, TypeError):
             parsed["confidence"]["overall"] = 0.5
         
+        # Add original query to parsed result
+        parsed["original_query"] = original_query
+        
         app_logger.info(f"✅ _validate_parsed_query output: {parsed}")
         return parsed
     
@@ -948,32 +1058,58 @@ Analyze the query context carefully and return the structured JSON response with
         if not parsed_query.get("location"):
             return parsed_query
         
-        original_location = parsed_query["location"]
-        location_info = location_resolver.resolve_location(original_location)
+        if not LOCATION_RESOLVER_AVAILABLE or not location_resolver:
+            app_logger.warning("Location resolver not available, using basic location handling")
+            # Basic location handling without resolver
+            original_location = parsed_query["location"]
+            parsed_query["location_status"] = "basic"
+            parsed_query["original_location"] = original_location
+            parsed_query["resolved_city"] = original_location
+            parsed_query["neighborhood"] = None
+            return parsed_query
         
-        app_logger.info(f"🔍 Location resolution: '{original_location}' -> {location_info}")
-        
-        # Update parsed query with resolved location info
-        if location_info.location_type == "unsupported":
-            # Mark as unsupported for later handling
-            parsed_query["location_status"] = "unsupported"
-            parsed_query["original_location"] = original_location
-            parsed_query["location"] = None  # Clear location to trigger fallback
-        elif location_info.location_type == "unknown":
-            # Keep original but mark as uncertain
-            parsed_query["location_status"] = "unknown"
-            parsed_query["original_location"] = original_location
-            # Keep the original location for potential partial matching
-        else:
-            # Successfully resolved
-            parsed_query["location_status"] = "supported"
-            parsed_query["original_location"] = original_location
-            parsed_query["resolved_city"] = location_info.resolved_city
-            parsed_query["neighborhood"] = location_info.neighborhood
-            parsed_query["location"] = location_info.resolved_city  # Use resolved city for searches
+        try:
+            original_location = parsed_query["location"]
+            location_info = location_resolver.resolve_location(original_location)
             
-            # Update location confidence
-            if "confidence" in parsed_query and isinstance(parsed_query["confidence"], dict):
-                parsed_query["confidence"]["location"] = location_info.confidence
-        
-        return parsed_query
+            app_logger.info(f"🔍 Location resolution: '{original_location}' -> {location_info}")
+            
+            # Update parsed query with resolved location info
+            if location_info.location_type == "unsupported":
+                # Mark as unsupported for later handling
+                parsed_query["location_status"] = "unsupported"
+                parsed_query["original_location"] = original_location
+                parsed_query["location"] = None  # Clear location to trigger fallback
+            elif location_info.location_type == "unknown":
+                # Keep original but mark as uncertain
+                parsed_query["location_status"] = "unknown"
+                parsed_query["original_location"] = original_location
+                # Keep the original location for potential partial matching
+            else:
+                # Successfully resolved
+                parsed_query["location_status"] = "supported"
+                parsed_query["original_location"] = original_location
+                parsed_query["resolved_city"] = location_info.resolved_city
+                parsed_query["neighborhood"] = location_info.neighborhood
+                
+                # Prioritize neighborhood over city for location
+                if location_info.neighborhood:
+                    parsed_query["location"] = location_info.neighborhood  # Use neighborhood if available
+                else:
+                    parsed_query["location"] = location_info.resolved_city  # Fallback to city
+                
+                # Update location confidence
+                if "confidence" in parsed_query and isinstance(parsed_query["confidence"], dict):
+                    parsed_query["confidence"]["location"] = location_info.confidence
+            
+            return parsed_query
+            
+        except Exception as e:
+            app_logger.error(f"Error in location resolution: {e}")
+            # Fallback to basic location handling
+            original_location = parsed_query["location"]
+            parsed_query["location_status"] = "error"
+            parsed_query["original_location"] = original_location
+            parsed_query["resolved_city"] = original_location
+            parsed_query["neighborhood"] = None
+            return parsed_query

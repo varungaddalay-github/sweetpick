@@ -98,6 +98,9 @@ __pypackages__/
 celerybeat-schedule
 celerybeat.pid
 
+# Environment files
+export_minimal_env.sh
+
 # SageMath parsed files
 *.sage.py
 

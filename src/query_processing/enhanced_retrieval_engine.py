@@ -12,12 +12,46 @@ from src.vector_db.discovery_collections import DiscoveryCollections
 from src.query_processing.retrieval_engine import RetrievalEngine
 
 
+
 class EnhancedRetrievalEngine(RetrievalEngine):
     """Enhanced retrieval engine with discovery collections support."""
     
     def __init__(self, milvus_client: MilvusClient):
         super().__init__(milvus_client)
         self.discovery_collections = DiscoveryCollections()
+        self._embedding_cache = {}
+        self.settings = get_settings()
+        
+    async def _generate_embedding(self, text: str) -> List[float]:
+        """Generate embedding for text using OpenAI."""
+        if not text:
+            vector_dim = getattr(self.settings, 'vector_dimension', 1536)  # Default to OpenAI embedding dimension
+            return [0.0] * vector_dim
+        
+        # Check cache
+        cache_key = f"embedding:{hash(text)}"
+        if cache_key in self._embedding_cache:
+            app_logger.debug(f"Using cached embedding for text: {text[:50]}...")
+            return self._embedding_cache[cache_key]
+        
+        try:
+            app_logger.debug(f"Generating embedding for text: {text[:50]}...")
+            client = AsyncOpenAI()
+            response = await client.embeddings.create(
+                model="text-embedding-3-small",
+                input=text
+            )
+            
+            embedding = response.data[0].embedding
+            self._embedding_cache[cache_key] = embedding
+            
+            app_logger.debug(f"Successfully generated embedding with {len(embedding)} dimensions")
+            return embedding
+            
+        except Exception as e:
+            app_logger.error(f"Error generating embedding: {e}")
+            vector_dim = getattr(self.settings, 'vector_dimension', 1536)  # Default to OpenAI embedding dimension
+            return [0.0] * vector_dim
         
     async def get_recommendations(self, parsed_query: Dict[str, Any], max_results: int = 10) -> Tuple[List[Dict], bool, Optional[str]]:
         """Get recommendations using enhanced discovery collections + fallback to traditional."""

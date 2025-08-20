@@ -83,14 +83,10 @@
   - Challenge: API quotas; mitigation: caching + backoffs and retries.
 
 ## Possible future enhancements
-- Retrieval/ranking
-  - Learning-to-rank with offline labels; personalized re-ranking by user preferences.
-  - Freshness/trending signals (recency weighting, seasonal dishes).
+- Mobile Application
+- Add a Sharing feature with Friends
 - Coverage and modalities
   - Expand geographies and cuisines; add menu images and OCR for multimodal retrieval.
-- Data quality
-  - Advanced de-duplication across chains; entity resolution for restaurants/dishes.
-  - Continuous validation dashboards; anomaly detection for input drift.
 - UX and product
   - Saved lists, constraints (budget/diet), group planning, time-aware suggestions.
 - Ops and quality

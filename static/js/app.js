@@ -434,9 +434,18 @@ class SweetPickApp {
     }
 
     displayRecommendations(recommendations) {
+        // 🔍 ADD LOGGING FOR RECOMMENDATIONS DATA
+        console.log('🔍 DEBUG: displayRecommendations called with:', {
+            recommendations_count: recommendations ? recommendations.length : 'undefined',
+            recommendations_type: typeof recommendations,
+            first_recommendation: recommendations && recommendations.length > 0 ? recommendations[0] : 'none',
+            all_recommendations: recommendations
+        });
+
         const resultsGrid = document.getElementById('resultsGrid');
         
         if (!recommendations || recommendations.length === 0) {
+            console.log('🔍 DEBUG: No recommendations to display');
             resultsGrid.innerHTML = `
                 <div class="no-results">
                     <div class="no-results-icon">🔍</div>
@@ -447,11 +456,35 @@ class SweetPickApp {
             return;
         }
 
+        // LOG EACH RECOMMENDATION BEFORE CREATING CARDS
+        recommendations.forEach((rec, index) => {
+            console.log(`🔍 DEBUG: Recommendation ${index + 1}:`, {
+                dish_name: rec.dish_name,
+                restaurant_name: rec.restaurant_name,
+                cuisine_type: rec.cuisine_type,
+                location: rec.location,
+                rating: rec.rating,
+                score: rec.recommendation_score,
+                source: rec.source
+            });
+        });
+
         resultsGrid.innerHTML = recommendations.map(item => this.createResultCard(item)).join('');
         resultsGrid.style.display = 'grid';
     }
 
     createResultCard(item) {
+        // 🔍 ADD COMPREHENSIVE LOGGING FOR DISH NAME DEBUGGING
+        console.log('🔍 DEBUG: createResultCard called with item:', {
+            dish_name: item.dish_name,
+            restaurant_name: item.restaurant_name,
+            cuisine_type: item.cuisine_type,
+            location: item.location,
+            rating: item.rating,
+            score: item.recommendation_score,
+            full_item: item
+        });
+
         const isFavorite = this.favorites.some(fav => 
             fav.dish_name === item.dish_name && fav.restaurant_name === item.restaurant_name
         );
@@ -459,6 +492,19 @@ class SweetPickApp {
         const cuisineIcon = this.getCuisineIcon(item.cuisine_type);
         const rating = item.restaurant_rating || item.rating || 0;
         const score = item.recommendation_score || item.confidence || 0;
+
+        // 🔍 LOG THE EXACT VALUES BEING USED FOR TITLE
+        const titleValue = item.dish_name || item.restaurant_name || 'Recommendation';
+        console.log('🔍 DEBUG: Title calculation:', {
+            dish_name: item.dish_name,
+            restaurant_name: item.restaurant_name,
+            fallback: 'Recommendation',
+            final_title: titleValue,
+            dish_name_type: typeof item.dish_name,
+            dish_name_length: item.dish_name ? item.dish_name.length : 'undefined',
+            dish_name_empty: item.dish_name === '',
+            dish_name_generic: item.dish_name === 'Dish'
+        });
 
         const reason = item.reason ? `<p class="result-reason">${item.reason}</p>` : '';
         const badge = item.type === 'web_search' ? `<span class="result-fallback">Web Search</span>` : (item.fallback_reason ? `<span class="result-fallback">Alternative</span>` : '');
@@ -474,7 +520,7 @@ class SweetPickApp {
                 <div class="result-content">
                     <div class="result-header">
                         <div>
-                            <h3 class="result-title">${item.dish_name || item.restaurant_name || 'Recommendation'}</h3>
+                            <h3 class="result-title">${titleValue}</h3>
                             <p class="result-restaurant">${item.restaurant_name || item.location || ''}</p>
                         </div>
                         <div class="result-rating">

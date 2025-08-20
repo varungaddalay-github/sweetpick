@@ -7,7 +7,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.py"
+      "dest": "/api/index.py"
     }
   ]
 }

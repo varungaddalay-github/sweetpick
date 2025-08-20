@@ -1033,7 +1033,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                                 "dish_name": rec.get('top_dish_name', rec.get('dish_name', 'Dish')),  # Use correct field name from discovery collections
                                 "cuisine_type": rec.get('cuisine_type', cuisine),
                                 "neighborhood": rec.get('neighborhood', neighborhood or location),
-                                "description": self._generate_dish_description(rec, neighborhood or location),  # Generate better description
+                                "description": _generate_dish_description(rec, neighborhood or location),  # Generate better description
                                 "final_score": float(rec.get('final_score', rec.get('top_dish_final_score', 0.8))),  # Use correct field name
                                 "rating": float(rec.get('rating', 4.5)),  # Use actual rating from data
                                 "price_range": rec.get('price_range', "$$"),  # Use actual price range if available

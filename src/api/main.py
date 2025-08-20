@@ -1036,11 +1036,14 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             query_type = parsed_query.get('query_type', 'general')
         
         # Get recommendations with fallback
+        app_logger.info(f"🔍 Retrieval engine status: {retrieval_engine is not None}")
         if retrieval_engine is not None:
+            app_logger.info("🔍 Using retrieval engine for recommendations")
             recommendations, fallback_used, fallback_reason = await retrieval_engine.get_recommendations(
                 parsed_query, request.max_results or 10
             )
         else:
+            app_logger.info("🔍 Retrieval engine is None, using direct Milvus HTTP client")
             # Use Milvus HTTP client directly for recommendations
             if MILVUS_AVAILABLE:
                 try:

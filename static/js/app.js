@@ -373,6 +373,18 @@ class SweetPickApp {
     }
 
     displayResults(data) {
+        // 🔍 COMPREHENSIVE DATA DEBUGGING
+        console.log('🔍 DEBUG: displayResults called with complete data:', {
+            data_type: typeof data,
+            data_keys: Object.keys(data || {}),
+            recommendations_count: data.recommendations ? data.recommendations.length : 'undefined',
+            recommendations_sample: data.recommendations && data.recommendations.length > 0 ? data.recommendations[0] : 'none',
+            natural_response: data.natural_response,
+            fallback_reason: data.fallback_reason,
+            processing_time: data.processing_time,
+            complete_data: data
+        });
+        
         this.updateResultsHeader(data);
         this.displayAIResponse(data.natural_response || data.fallback_reason, data); // Pass data parameter
         this.displayRecommendations(data.recommendations);
@@ -458,14 +470,41 @@ class SweetPickApp {
 
         // LOG EACH RECOMMENDATION BEFORE CREATING CARDS
         recommendations.forEach((rec, index) => {
+            // 🔍 COMPREHENSIVE FIELD ANALYSIS
+            const allFields = Object.keys(rec);
+            const fieldValues = {};
+            allFields.forEach(field => {
+                fieldValues[field] = {
+                    value: rec[field],
+                    type: typeof rec[field],
+                    length: rec[field] ? String(rec[field]).length : 0
+                };
+            });
+            
             console.log(`🔍 DEBUG: Recommendation ${index + 1}:`, {
                 dish_name: rec.dish_name,
                 restaurant_name: rec.restaurant_name,
                 cuisine_type: rec.cuisine_type,
                 location: rec.location,
+                neighborhood: rec.neighborhood,
+                city: rec.city,
+                area: rec.area,
                 rating: rec.rating,
                 score: rec.recommendation_score,
-                source: rec.source
+                source: rec.source,
+                // Log all available fields to understand the data structure
+                all_fields: allFields,
+                // Check for alternative dish-related fields
+                dish_related_fields: {
+                    dish_name: rec.dish_name,
+                    dish: rec.dish,
+                    name: rec.name,
+                    title: rec.title,
+                    item_name: rec.item_name,
+                    food_name: rec.food_name
+                },
+                // Comprehensive field analysis
+                field_analysis: fieldValues
             });
         });
 
@@ -480,6 +519,9 @@ class SweetPickApp {
             restaurant_name: item.restaurant_name,
             cuisine_type: item.cuisine_type,
             location: item.location,
+            neighborhood: item.neighborhood,
+            city: item.city,
+            area: item.area,
             rating: item.rating,
             score: item.recommendation_score,
             full_item: item
@@ -493,8 +535,49 @@ class SweetPickApp {
         const rating = item.restaurant_rating || item.rating || 0;
         const score = item.recommendation_score || item.confidence || 0;
 
+        // 🔍 IMPROVED TITLE LOGIC - Check for actual dish names, not generic "Dish"
+        let titleValue = 'Recommendation';
+        
+        // Check for meaningful dish names in various possible fields
+        const possibleDishNames = [
+            item.dish_name,
+            item.dish,
+            item.name,
+            item.title,
+            item.item_name,
+            item.food_name
+        ].filter(name => name && name !== 'Dish' && name.trim() !== '');
+        
+        // Also check if there are any other fields that might contain dish information
+        const otherFields = Object.keys(item).filter(key => 
+            key.toLowerCase().includes('dish') || 
+            key.toLowerCase().includes('food') || 
+            key.toLowerCase().includes('item') ||
+            key.toLowerCase().includes('name')
+        );
+        
+        otherFields.forEach(field => {
+            const value = item[field];
+            if (value && value !== 'Dish' && typeof value === 'string' && value.trim() !== '') {
+                possibleDishNames.push(value);
+            }
+        });
+        
+        if (possibleDishNames.length > 0) {
+            titleValue = possibleDishNames[0];
+        } else if (item.restaurant_name) {
+            // If no meaningful dish name, use restaurant name as title
+            titleValue = item.restaurant_name;
+        }
+        
+        // 🔍 ENHANCED TITLE LOGIC - Create descriptive titles for generic dish names
+        if (titleValue === 'Dish' && item.cuisine_type && item.restaurant_name) {
+            titleValue = `${item.cuisine_type} at ${item.restaurant_name}`;
+        } else if (titleValue === 'Dish' && item.cuisine_type) {
+            titleValue = `Delicious ${item.cuisine_type} Food`;
+        }
+        
         // 🔍 LOG THE EXACT VALUES BEING USED FOR TITLE
-        const titleValue = item.dish_name || item.restaurant_name || 'Recommendation';
         console.log('🔍 DEBUG: Title calculation:', {
             dish_name: item.dish_name,
             restaurant_name: item.restaurant_name,
@@ -503,11 +586,75 @@ class SweetPickApp {
             dish_name_type: typeof item.dish_name,
             dish_name_length: item.dish_name ? item.dish_name.length : 'undefined',
             dish_name_empty: item.dish_name === '',
-            dish_name_generic: item.dish_name === 'Dish'
+            dish_name_generic: item.dish_name === 'Dish',
+            title_final: titleValue,
+            possible_dish_names: possibleDishNames,
+            other_fields_checked: otherFields,
+            selected_title_source: possibleDishNames.length > 0 ? 'dish_field' : (item.restaurant_name ? 'restaurant_name' : 'fallback')
+        });
+
+        // 🔍 IMPROVED LOCATION LOGIC - Use neighborhood if location is undefined
+        let locationDisplay = item.location || item.neighborhood || item.city || item.area || item.cuisine_type || '';
+        
+        // 🔍 ENHANCED LOCATION LOGIC - Create descriptive location when missing
+        if (!locationDisplay || locationDisplay === '') {
+            if (item.cuisine_type) {
+                locationDisplay = `Delicious ${item.cuisine_type} Cuisine`;
+            } else {
+                locationDisplay = 'Great Food';
+            }
+        }
+        
+        // 🔍 LOG LOCATION LOGIC
+        console.log('🔍 DEBUG: Location calculation:', {
+            original_location: item.location,
+            neighborhood: item.neighborhood,
+            city: item.city,
+            area: item.area,
+            cuisine_type: item.cuisine_type,
+            final_location: locationDisplay,
+            location_source: item.location ? 'location' : 
+                            item.neighborhood ? 'neighborhood' : 
+                            item.city ? 'city' : 
+                            item.area ? 'area' : 
+                            item.cuisine_type ? 'cuisine_type' : 'fallback'
+        });
+        
+        // 🔍 IMPROVED RESTAURANT NAME LOGIC - Don't show restaurant name if it's the same as title
+        const restaurantDisplay = (item.restaurant_name && item.restaurant_name !== titleValue) ? item.restaurant_name : '';
+        
+        // 🔍 LOG RESTAURANT NAME LOGIC
+        console.log('🔍 DEBUG: Restaurant name logic:', {
+            restaurant_name: item.restaurant_name,
+            title_value: titleValue,
+            show_restaurant: restaurantDisplay !== '',
+            restaurant_display: restaurantDisplay,
+            reason: item.restaurant_name === titleValue ? 'same_as_title' : 'different_from_title'
         });
 
         const reason = item.reason ? `<p class="result-reason">${item.reason}</p>` : '';
         const badge = item.type === 'web_search' ? `<span class="result-fallback">Web Search</span>` : (item.fallback_reason ? `<span class="result-fallback">Alternative</span>` : '');
+        
+        // 🔍 ADDITIONAL INFO LOGIC - Show price range or special features when available
+        let additionalInfo = '';
+        if (item.price_range) {
+            additionalInfo += `<span class="price-range"><i class="fas fa-dollar-sign"></i> ${item.price_range}</span>`;
+        }
+        if (item.special_features && Array.isArray(item.special_features)) {
+            additionalInfo += `<span class="special-features"><i class="fas fa-star"></i> ${item.special_features.join(', ')}</span>`;
+        }
+        if (item.popular_dishes && Array.isArray(item.popular_dishes)) {
+            additionalInfo += `<span class="popular-dishes"><i class="fas fa-fire"></i> Popular: ${item.popular_dishes.slice(0, 2).join(', ')}</span>`;
+        }
+        
+        // 🔍 LOG ADDITIONAL INFO LOGIC
+        console.log('🔍 DEBUG: Additional info logic:', {
+            price_range: item.price_range,
+            special_features: item.special_features,
+            popular_dishes: item.popular_dishes,
+            additional_info_html: additionalInfo,
+            has_additional_info: additionalInfo !== ''
+        });
 
         return `
             <div class="result-card" data-dish="${item.dish_name}" data-restaurant="${item.restaurant_name}">
@@ -521,7 +668,7 @@ class SweetPickApp {
                     <div class="result-header">
                         <div>
                             <h3 class="result-title">${titleValue}</h3>
-                            <p class="result-restaurant">${item.restaurant_name || item.location || ''}</p>
+                            ${restaurantDisplay ? `<p class="result-restaurant">${restaurantDisplay}</p>` : ''}
                         </div>
                         <div class="result-rating">
                             <i class="fas fa-star"></i>
@@ -529,9 +676,10 @@ class SweetPickApp {
                         </div>
                     </div>
                     <div class="result-details">
-                        <span><i class="fas fa-map-marker-alt"></i> ${item.location || item.cuisine_type || ''}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${locationDisplay}</span>
                         ${item.type ? `<span><i class="fas fa-tag"></i> ${item.type === 'web_search' ? 'Web Search' : item.type}</span>` : ''}
                     </div>
+                    ${additionalInfo ? `<div class="result-additional">${additionalInfo}</div>` : ''}
                     ${reason}
                     ${this.renderDishBadges(item)}
                     <div class="result-footer">

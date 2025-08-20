@@ -1041,6 +1041,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             )
         else:
             app_logger.info("🔍 Retrieval engine is None, using direct Milvus HTTP client")
+            app_logger.info(f"🔍 Debug: retrieval_engine type: {type(retrieval_engine)}, value: {retrieval_engine}")
             # Use Milvus HTTP client directly for recommendations
             if MILVUS_AVAILABLE:
                 try:

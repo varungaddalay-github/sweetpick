@@ -577,6 +577,67 @@ class SweetPickApp {
             titleValue = `Delicious ${item.cuisine_type} Food`;
         }
         
+        // 🔍 USE DESCRIPTION WHEN AVAILABLE - Extract meaningful dish info from description
+        if (titleValue === 'Dish' && item.description) {
+            // Try to extract dish name from description
+            const description = item.description;
+            
+            console.log('🔍 DEBUG: Attempting dish name extraction from description:', {
+                original_title: titleValue,
+                description: description,
+                description_length: description.length
+            });
+            
+            // Pattern 1: "Try the [dish] at [restaurant]"
+            if (description.includes("Try the") && description.includes("at")) {
+                const match = description.match(/Try the (.+?) at/);
+                if (match && match[1] && match[1].trim() !== '') {
+                    titleValue = match[1].trim();
+                    console.log('🔍 DEBUG: Pattern 1 matched - extracted dish name:', titleValue);
+                }
+            }
+            // Pattern 2: Look for dish names after "Try the" or similar phrases
+            else if (description.includes("Try the")) {
+                const afterTry = description.split("Try the")[1];
+                if (afterTry) {
+                    const dishPart = afterTry.split(" ")[0];
+                    if (dishPart && dishPart.length > 0) {
+                        titleValue = dishPart;
+                        console.log('🔍 DEBUG: Pattern 2 matched - extracted dish name:', titleValue);
+                    }
+                }
+            }
+            // Pattern 3: Look for common dish indicators
+            else if (description.includes("dish")) {
+                // Find words around "dish" that might be the actual dish name
+                const words = description.split(" ");
+                const dishIndex = words.findIndex(word => word.toLowerCase().includes("dish"));
+                if (dishIndex > 0) {
+                    const beforeDish = words[dishIndex - 1];
+                    if (beforeDish && beforeDish.length > 2) {
+                        titleValue = beforeDish;
+                        console.log('🔍 DEBUG: Pattern 3 matched - extracted dish name:', titleValue);
+                    }
+                }
+            }
+            // Pattern 4: Use first meaningful words from description
+            else if (description.length > 0) {
+                const words = description.split(' ').filter(word => 
+                    word.length > 2 && 
+                    !word.toLowerCase().includes('the') && 
+                    !word.toLowerCase().includes('at') && 
+                    !word.toLowerCase().includes('in') &&
+                    !word.toLowerCase().includes('try')
+                );
+                if (words.length > 0) {
+                    titleValue = words[0];
+                    console.log('🔍 DEBUG: Pattern 4 matched - extracted dish name:', titleValue);
+                }
+            }
+            
+            console.log('🔍 DEBUG: Final extracted dish name:', titleValue);
+        }
+        
         // 🔍 LOG THE EXACT VALUES BEING USED FOR TITLE
         console.log('🔍 DEBUG: Title calculation:', {
             dish_name: item.dish_name,
@@ -647,11 +708,32 @@ class SweetPickApp {
             additionalInfo += `<span class="popular-dishes"><i class="fas fa-fire"></i> Popular: ${item.popular_dishes.slice(0, 2).join(', ')}</span>`;
         }
         
+        // 🔍 ENHANCED INFO - Show description when available (but not too long)
+        if (item.description && item.description.length > 0) {
+            const maxLength = 80;
+            let displayDescription = item.description;
+            if (displayDescription.length > maxLength) {
+                displayDescription = displayDescription.substring(0, maxLength) + '...';
+            }
+            additionalInfo += `<span class="description-info"><i class="fas fa-info-circle"></i> ${displayDescription}</span>`;
+        }
+        
+        // 🔍 SCORE INFO - Show final score and confidence when available
+        if (item.final_score !== undefined) {
+            additionalInfo += `<span class="final-score"><i class="fas fa-chart-line"></i> Score: ${(item.final_score * 100).toFixed(0)}%</span>`;
+        }
+        if (item.confidence !== undefined) {
+            additionalInfo += `<span class="confidence-score"><i class="fas fa-shield-alt"></i> Confidence: ${(item.confidence * 100).toFixed(0)}%</span>`;
+        }
+        
         // 🔍 LOG ADDITIONAL INFO LOGIC
         console.log('🔍 DEBUG: Additional info logic:', {
             price_range: item.price_range,
             special_features: item.special_features,
             popular_dishes: item.popular_dishes,
+            description: item.description,
+            final_score: item.final_score,
+            confidence: item.confidence,
             additional_info_html: additionalInfo,
             has_additional_info: additionalInfo !== ''
         });

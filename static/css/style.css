@@ -601,6 +601,26 @@ body {
     color: #E65100;
 }
 
+.description-info {
+    background: #E3F2FD;
+    color: #1565C0;
+    flex-basis: 100%;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.final-score {
+    background: #F3E5F5;
+    color: #7B1FA2;
+}
+
+.confidence-score {
+    background: #E8F5E8;
+    color: #2E7D32;
+}
+
 .result-score {
     background: var(--light-gold);
     color: var(--charcoal);

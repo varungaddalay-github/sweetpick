@@ -126,6 +126,19 @@ except ImportError:
     abuse_protection = None
     print("Warning: Abuse protection not available")
 
+try:
+    from src.query_processing.retrieval_engine import RetrievalEngine
+    RETRIEVAL_AVAILABLE = True
+except ImportError:
+    RETRIEVAL_AVAILABLE = False
+    print("Warning: Retrieval engine not available")
+
+try:
+    from src.data_collection.cache_manager import CacheManager
+    CACHE_AVAILABLE = True
+except ImportError:
+    CACHE_AVAILABLE = False
+    print("Warning: Cache manager not available")
 
 # Pydantic models
 class QueryRequest(BaseModel):
@@ -999,30 +1012,54 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                     )
                     app_logger.info(f"🔍 HTTP client returned {len(raw_recommendations)} recommendations")
                     
+                    # 🔍 DEBUG: Log the actual fields being returned to understand data structure
+                    if raw_recommendations and len(raw_recommendations) > 0:
+                        sample_rec = raw_recommendations[0]
+                        app_logger.info(f"🔍 Sample recommendation fields: {list(sample_rec.keys())}")
+                        app_logger.info(f"🔍 Sample recommendation data: {sample_rec}")
+                    
                     # Format raw results for UI
                     if raw_recommendations:
                         formatted_recommendations = []
                         for i, rec in enumerate(raw_recommendations):
+                            # 🔍 DEBUG: Log the raw record fields for each recommendation
+                            app_logger.info(f"🔍 Raw record {i} fields: {list(rec.keys())}")
+                            app_logger.info(f"🔍 Raw record {i} top_dish_name: {rec.get('top_dish_name')}")
+                            app_logger.info(f"🔍 Raw record {i} dish_name: {rec.get('dish_name')}")
+                            
                             formatted_rec = {
                                 "id": rec.get('restaurant_id', f"rec_{i}"),
                                 "restaurant_name": rec.get('restaurant_name', 'Restaurant'),
-                                "dish_name": rec.get('dish_name', 'Dish'),
+                                "dish_name": rec.get('top_dish_name', rec.get('dish_name', 'Dish')),  # Use correct field name from discovery collections
                                 "cuisine_type": rec.get('cuisine_type', cuisine),
                                 "neighborhood": rec.get('neighborhood', neighborhood or location),
-                                "description": f"Try the {rec.get('dish_name', 'dish')} at {rec.get('restaurant_name', 'this restaurant')} in {rec.get('neighborhood', location)}. Highly recommended!",
-                                "final_score": float(rec.get('final_score', 0.8)),
-                                "rating": 4.5,  # Default since your data doesn't have this
-                                "price_range": "$$",  # Default since your data doesn't have this
+                                "description": self._generate_dish_description(rec, neighborhood or location),  # Generate better description
+                                "final_score": float(rec.get('final_score', rec.get('top_dish_final_score', 0.8))),  # Use correct field name
+                                "rating": float(rec.get('rating', 4.5)),  # Use actual rating from data
+                                "price_range": rec.get('price_range', "$$"),  # Use actual price range if available
                                 "source": "milvus_http_search",  # This tells UI it's from HTTP client
-                                "confidence": float(rec.get('final_score', 0.8)),
+                                "confidence": float(rec.get('final_score', rec.get('top_dish_final_score', 0.8))),  # Use correct field name
                                 # Keep original fields for compatibility
-                                "topic_score": float(rec.get('topic_score', 0.0)),
-                                "recommendation_score": float(rec.get('recommendation_score', 0.8))
+                                "topic_score": float(rec.get('topic_score', rec.get('top_dish_topic_mentions', 0.0))),  # Use correct field name
+                                "recommendation_score": float(rec.get('recommendation_score', rec.get('hybrid_quality_score', 0.8)))  # Use correct field name
                             }
+                            
+                            # 🔍 DEBUG: Log the formatted record to verify field mapping
+                            app_logger.info(f"🔍 Formatted record {i} dish_name: {formatted_rec['dish_name']}")
+                            app_logger.info(f"🔍 Formatted record {i} description: {formatted_rec['description']}")
+                            
                             formatted_recommendations.append(formatted_rec)
                         recommendations = formatted_recommendations
                         fallback_used = False
                         fallback_reason = None
+                        
+                        # 🔍 DEBUG: Log the formatted recommendations to verify field mapping
+                        if formatted_recommendations and len(formatted_recommendations) > 0:
+                            sample_formatted = formatted_recommendations[0]
+                            app_logger.info(f"🔍 Sample formatted recommendation fields: {list(sample_formatted.keys())}")
+                            app_logger.info(f"🔍 Sample formatted dish_name: {sample_formatted.get('dish_name')}")
+                            app_logger.info(f"🔍 Sample formatted description: {sample_formatted.get('description')}")
+                        
                         app_logger.info(f"✅ HTTP client search successful: {len(recommendations)} recommendations")
                     else:
                         recommendations = []
@@ -1129,6 +1166,12 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         processing_time = (datetime.now() - start_time).total_seconds()
         stats['response_times'].append(processing_time)
         
+        # 🔍 DEBUG: Log final recommendations being sent to frontend
+        if recommendations and len(recommendations) > 0:
+            app_logger.info(f"🔍 Final recommendations being sent to frontend:")
+            for i, rec in enumerate(recommendations[:3]):  # Log first 3
+                app_logger.info(f"🔍 Final rec {i}: dish_name='{rec.get('dish_name')}', description='{rec.get('description')}'")
+        
         # Calculate confidence score
         if retrieval_engine is not None:
             confidence_score = retrieval_engine.calculate_confidence(recommendations, parsed_query)
@@ -1230,7 +1273,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                     top_restaurants = []
                     for rec in recommendations[:3]:  # Top 3
                         rest_name = rec.get('restaurant_name', 'restaurant')
-                        dish_name = rec.get('dish_name', 'dish')
+                        dish_name = rec.get('top_dish_name', rec.get('dish_name', 'dish'))  # Use correct field name from discovery collections
                         if rest_name and dish_name:
                             top_restaurants.append(f"{dish_name} at {rest_name}")
                     
@@ -2155,3 +2198,23 @@ async def search_locations(query: str, city: Optional[str] = None, max_results: 
 def _summarize_history(messages: List[ChatMessage], limit: int = 6) -> str:
     recent = messages[-limit:]
     return "\n".join([f"{m.role}: {m.content}" for m in recent]) 
+
+# Helper function to generate better dish descriptions
+def _generate_dish_description(rec: Dict[str, Any], location: str) -> str:
+    """Generate a better description for dish recommendations."""
+    dish_name = rec.get('top_dish_name', rec.get('dish_name', 'dish'))
+    restaurant_name = rec.get('restaurant_name', 'this restaurant')
+    neighborhood = rec.get('neighborhood', location)
+    
+    # Create a more natural description
+    if dish_name and dish_name != 'Dish' and dish_name != 'dish':
+        if neighborhood and neighborhood != location:
+            return f"Try the {dish_name} at {restaurant_name} in {neighborhood}. Highly recommended!"
+        else:
+            return f"Try the {dish_name} at {restaurant_name}. Highly recommended!"
+    else:
+        # Fallback for generic dish names
+        if neighborhood and neighborhood != location:
+            return f"Try the food at {restaurant_name} in {neighborhood}. Highly recommended!"
+        else:
+            return f"Try the food at {restaurant_name}. Highly recommended!"

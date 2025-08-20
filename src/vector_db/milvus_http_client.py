@@ -86,13 +86,39 @@ class MilvusHTTPClient:
     
     async def list_collections(self) -> List[str]:
         """List all collections."""
-        try:
-            response = await self._make_request("GET", "/v1/collections")
-            collections = response.get("data", [])
-            return [col.get("name") for col in collections if col.get("name")]
-        except Exception as e:
-            app_logger.error(f"Error listing collections: {e}")
-            return []
+        # Try different endpoint patterns for Zilliz Cloud
+        endpoints_to_try = [
+            "/v1/vector/collections",
+            "/v2/vectordb/collections/list",
+            "/api/v1/collections", 
+            "/v1/collections",
+            "/collections"
+        ]
+        
+        for endpoint in endpoints_to_try:
+            try:
+                app_logger.info(f"Trying endpoint: {endpoint}")
+                response = await self._make_request("GET", endpoint)
+                
+                # Handle different response formats
+                if "data" in response:
+                    collections = response.get("data", [])
+                    if isinstance(collections, list):
+                        return [col.get("name", col) if isinstance(col, dict) else col for col in collections]
+                elif "collections" in response:
+                    collections = response.get("collections", [])
+                    return [col.get("name", col) if isinstance(col, dict) else col for col in collections]
+                elif isinstance(response, list):
+                    return [col.get("name", col) if isinstance(col, dict) else col for col in response]
+                else:
+                    app_logger.info(f"Unexpected response format: {response}")
+                    
+            except Exception as e:
+                app_logger.warning(f"Endpoint {endpoint} failed: {e}")
+                continue
+        
+        app_logger.error("All collection endpoints failed")
+        return []
     
     async def get_collection_stats(self) -> Dict[str, Any]:
         """Get collection statistics."""
@@ -101,16 +127,34 @@ class MilvusHTTPClient:
             stats = {}
             
             for collection_name in collections:
-                try:
-                    response = await self._make_request("GET", f"/v1/collections/{collection_name}")
-                    stats[collection_name] = {
-                        "name": collection_name,
-                        "entity_count": response.get("data", {}).get("entity_count", 0),
-                        "dimension": response.get("data", {}).get("dimension", 0)
-                    }
-                except Exception as e:
-                    app_logger.warning(f"Error getting stats for {collection_name}: {e}")
-                    stats[collection_name] = {"error": str(e)}
+                endpoints_to_try = [
+                    f"/v1/vector/collections/{collection_name}",
+                    f"/v2/vectordb/collections/describe",
+                    f"/api/v1/collections/{collection_name}",
+                    f"/v1/collections/{collection_name}",
+                    f"/collections/{collection_name}"
+                ]
+                
+                for endpoint in endpoints_to_try:
+                    try:
+                        # For v2 API, might need POST with collection name in body
+                        if "v2/vectordb" in endpoint:
+                            response = await self._make_request("POST", endpoint, {"collectionName": collection_name})
+                        else:
+                            response = await self._make_request("GET", endpoint)
+                        
+                        stats[collection_name] = {
+                            "name": collection_name,
+                            "entity_count": response.get("data", {}).get("entity_count", 0) or response.get("entity_count", 0),
+                            "dimension": response.get("data", {}).get("dimension", 0) or response.get("dimension", 0),
+                            "endpoint_used": endpoint
+                        }
+                        break
+                    except Exception as e:
+                        app_logger.warning(f"Endpoint {endpoint} failed for {collection_name}: {e}")
+                        continue
+                else:
+                    stats[collection_name] = {"error": "All endpoints failed"}
             
             return stats
         except Exception as e:
@@ -236,16 +280,53 @@ class MilvusHTTPClient:
         return sample_dishes.get(cuisine.lower(), sample_dishes["italian"])[:limit]
     
     async def test_connection(self) -> Dict[str, Any]:
-        """Test connection to Milvus."""
+        """Test connection to Milvus and discover API structure."""
         try:
+            # Test basic connectivity and discover endpoints
+            discovery_results = await self._discover_api_endpoints()
             collections = await self.list_collections()
+            
             return {
                 "success": True,
                 "collections_found": len(collections),
-                "collections": collections
+                "collections": collections,
+                "api_discovery": discovery_results
             }
         except Exception as e:
             return {
                 "success": False,
                 "error": str(e)
             }
+    
+    async def _discover_api_endpoints(self) -> Dict[str, Any]:
+        """Discover available API endpoints."""
+        endpoints_to_test = [
+            "/",
+            "/health",
+            "/v1",
+            "/v2",
+            "/api",
+            "/api/v1",
+            "/v1/vector",
+            "/v1/vector/collections",
+            "/v2/vectordb",
+            "/v1/collections",
+            "/v2/vectordb/collections/list",
+            "/api/v1/collections"
+        ]
+        
+        results = {}
+        for endpoint in endpoints_to_test:
+            try:
+                response = await self._make_request("GET", endpoint)
+                results[endpoint] = {
+                    "status": "success",
+                    "response_keys": list(response.keys()) if isinstance(response, dict) else "non-dict response"
+                }
+            except Exception as e:
+                results[endpoint] = {
+                    "status": "failed",
+                    "error": str(e)[:100]  # Truncate long errors
+                }
+        
+        return results

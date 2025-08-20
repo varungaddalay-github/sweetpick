@@ -920,8 +920,24 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         # Update statistics
         stats['total_queries'] += 1
         
-        # Parse the query
-        parsed_query = await query_parser.parse_query(request.query)
+        # Parse the query with fallback
+        if query_parser is not None:
+            parsed_query = await query_parser.parse_query(request.query)
+        else:
+            # Fallback parsing - basic extraction
+            parsed_query = {
+                'location': None,
+                'cuisine_type': None,
+                'dish_name': None,
+                'query_type': 'general'
+            }
+            
+            # Simple heuristic parsing
+            text_lower = request.query.lower()
+            if 'jersey city' in text_lower:
+                parsed_query['location'] = 'Jersey City'
+            if 'indian' in text_lower:
+                parsed_query['cuisine_type'] = 'Indian'
 
         # Heuristic fallback: infer location/cuisine from raw text if missing
         try:
@@ -971,15 +987,38 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             )
         
         # Determine query type
-        query_type = query_parser.classify_query_type(parsed_query)
+        if query_parser is not None:
+            query_type = query_parser.classify_query_type(parsed_query)
+        else:
+            query_type = parsed_query.get('query_type', 'general')
         
-        # Get recommendations
-        recommendations, fallback_used, fallback_reason = await retrieval_engine.get_recommendations(
-            parsed_query, request.max_results or 10
-        )
+        # Get recommendations with fallback
+        if retrieval_engine is not None:
+            recommendations, fallback_used, fallback_reason = await retrieval_engine.get_recommendations(
+                parsed_query, request.max_results or 10
+            )
+        else:
+            # Use Milvus HTTP client directly for recommendations
+            if MILVUS_AVAILABLE:
+                try:
+                    from src.vector_db.milvus_http_client import MilvusHTTPClient
+                    milvus_client = MilvusHTTPClient()
+                    cuisine = parsed_query.get('cuisine_type', 'Indian')
+                    recommendations = await milvus_client.search_dishes_with_topics(cuisine, request.max_results or 10)
+                    fallback_used = False
+                    fallback_reason = "Direct Milvus HTTP client"
+                except Exception as e:
+                    app_logger.error(f"Error using Milvus HTTP client: {e}")
+                    recommendations = []
+                    fallback_used = True
+                    fallback_reason = f"Milvus HTTP client error: {e}"
+            else:
+                recommendations = []
+                fallback_used = True
+                fallback_reason = "Retrieval engine not available"
         
         # Apply fallback if needed
-        if not recommendations and not fallback_used:
+        if not recommendations and not fallback_used and fallback_handler is not None:
             recommendations, fallback_used, fallback_reason = await fallback_handler.execute_fallback_strategy(
                 parsed_query, recommendations
             )
@@ -1022,7 +1061,11 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         stats['response_times'].append(processing_time)
         
         # Calculate confidence score
-        confidence_score = retrieval_engine.calculate_confidence(recommendations, parsed_query)
+        if retrieval_engine is not None:
+            confidence_score = retrieval_engine.calculate_confidence(recommendations, parsed_query)
+        else:
+            # Simple confidence calculation
+            confidence_score = 0.8 if recommendations else 0.3
         
         # Update cache statistics
         if fallback_used:

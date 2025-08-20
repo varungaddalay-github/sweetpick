@@ -12,8 +12,25 @@ class ResponseGenerator:
     """Generate natural language responses from recommendation data."""
     
     def __init__(self):
-        self.settings = get_settings()
-        self.client = AsyncOpenAI(api_key=self.settings.openai_api_key)
+        try:
+            self.settings = get_settings()
+            self.client = AsyncOpenAI(api_key=self.settings.openai_api_key)
+            self.openai_available = True
+        except Exception as e:
+            # Fallback when settings are not available
+            import os
+            openai_key = os.getenv("OPENAI_API_KEY")
+            if openai_key:
+                try:
+                    self.client = AsyncOpenAI(api_key=openai_key)
+                    self.openai_available = True
+                except Exception:
+                    self.openai_available = False
+            else:
+                self.openai_available = False
+            
+            if not self.openai_available:
+                print(f"Warning: OpenAI not available for response generation: {e}")
         
         # Response templates for consistency
         self.templates = {
@@ -32,6 +49,11 @@ class ResponseGenerator:
         query_metadata: Dict[str, Any]
     ) -> str:
         """Generate a natural language response using GPT-4o."""
+        
+        # Check if OpenAI is available
+        if not hasattr(self, 'openai_available') or not self.openai_available:
+            app_logger.warning("OpenAI not available, using template response")
+            return self._generate_template_response(user_query, recommendations, query_metadata)
         
         try:
             # Prepare context for GPT-4o

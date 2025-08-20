@@ -8,7 +8,15 @@ from src.utils.config import get_settings
 
 def setup_logger():
     """Configure the application logger."""
-    settings = get_settings()
+    try:
+        settings = get_settings()
+    except Exception:
+        # Fallback when settings are not available
+        import os
+        settings = type('Settings', (), {
+            'log_level': os.getenv('LOG_LEVEL', 'INFO'),
+            'environment': os.getenv('ENVIRONMENT', 'development')
+        })()
     
     # Remove default handler
     logger.remove()

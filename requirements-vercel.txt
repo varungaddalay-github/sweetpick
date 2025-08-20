@@ -24,5 +24,7 @@ openai==1.3.7
 tenacity==8.2.3
 loguru==0.7.2
 
-# Note: pymilvus removed due to Vercel compatibility issues
-# Will be added back with alternative deployment strategy
+# HTTP client for Milvus API
+httpx==0.25.2
+
+# Note: Using Milvus HTTP API instead of pymilvus for Vercel compatibility

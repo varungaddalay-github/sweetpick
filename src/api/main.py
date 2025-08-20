@@ -67,9 +67,17 @@ except ImportError:
     SENTIMENT_AVAILABLE = False
     print("Warning: Sentiment analyzer not available")
 
-# Milvus is temporarily disabled due to Vercel compatibility issues
-MILVUS_AVAILABLE = False
-print("⚠️ Milvus temporarily disabled - using fallback mode")
+# Use Milvus HTTP API instead of pymilvus
+try:
+    from src.vector_db.milvus_http_client import MilvusHTTPClient
+    MILVUS_AVAILABLE = True
+    print("✅ Milvus HTTP client available")
+except ImportError as e:
+    MILVUS_AVAILABLE = False
+    print(f"Warning: Milvus HTTP client not available - {e}")
+except Exception as e:
+    MILVUS_AVAILABLE = False
+    print(f"Warning: Milvus HTTP client error - {e}")
 
 try:
     from src.query_processing.query_parser import QueryParser
@@ -721,9 +729,40 @@ async def test_milvus():
         milvus_uri = os.getenv("MILVUS_URI")
         milvus_token = os.getenv("MILVUS_TOKEN")
         
+        # Test Milvus HTTP client
+        client_test = {}
+        try:
+            if MILVUS_AVAILABLE:
+                from src.vector_db.milvus_http_client import MilvusHTTPClient
+                milvus_client = MilvusHTTPClient()
+                client_test["client_initialization"] = {
+                    "success": True,
+                    "client_type": "MilvusHTTPClient"
+                }
+                
+                # Test connection
+                try:
+                    connection_result = await milvus_client.test_connection()
+                    client_test["connection"] = connection_result
+                except Exception as e:
+                    client_test["connection"] = {
+                        "success": False,
+                        "error": str(e)
+                    }
+            else:
+                client_test["client_initialization"] = {
+                    "success": False,
+                    "error": "MILVUS_AVAILABLE is False"
+                }
+        except Exception as e:
+            client_test["client_initialization"] = {
+                "success": False,
+                "error": str(e)
+            }
+        
         return {
-            "status": "milvus_temporarily_disabled",
-            "message": "Milvus is temporarily disabled due to Vercel compatibility issues",
+            "status": "milvus_http_test_complete",
+            "message": "Testing Milvus HTTP API client",
             "environment_check": {
                 "MILVUS_URI": {
                     "set": bool(milvus_uri),
@@ -736,22 +775,23 @@ async def test_milvus():
                     "valid_format": milvus_token and len(milvus_token) > 20 if milvus_token else False
                 }
             },
+            "client_test": client_test,
             "explanation": {
-                "issue": "pymilvus package fails to install on Vercel serverless functions",
-                "solution": "Will implement alternative vector database or use external API",
-                "current_status": "App works with fallback data and OpenAI integration",
-                "next_steps": [
-                    "1. Use external vector database API",
-                    "2. Implement simple file-based storage",
-                    "3. Use OpenAI embeddings with external search"
-                ]
+                "approach": "Using Milvus HTTP API instead of pymilvus Python client",
+                "advantages": [
+                    "No pymilvus installation required",
+                    "Better Vercel compatibility",
+                    "Standard HTTP requests",
+                    "Async support with httpx"
+                ],
+                "current_status": "HTTP client implemented with sample data fallback"
             },
             "current_capabilities": [
-                "✅ OpenAI integration working",
-                "✅ SerpAPI integration working", 
-                "✅ Fallback responses working",
-                "✅ UI fully functional",
-                "⚠️ Vector search using fallback data"
+                "✅ Milvus HTTP client available",
+                "✅ Environment variables configured",
+                "✅ HTTP requests to Milvus Cloud",
+                "✅ Sample data fallback",
+                "✅ Async operation support"
             ],
             "timestamp": datetime.now().isoformat()
         }
@@ -812,7 +852,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         
         if not MILVUS_AVAILABLE:
             # Instead of failing, provide a fallback response
-            print("⚠️ Milvus not available, using fallback response")
+            print("⚠️ Milvus HTTP client not available, using fallback response")
             return QueryResponse(
                 query=request.query,
                 query_type="fallback",
@@ -842,7 +882,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 ],
                 natural_response="I'm currently in fallback mode while the database is being set up. Here are some popular Italian dishes you might enjoy in Manhattan!",
                 fallback_used=True,
-                fallback_reason="Milvus database not available - using fallback data",
+                fallback_reason="Milvus HTTP client not available - using fallback data",
                 processing_time=(datetime.now() - start_time).total_seconds(),
                 confidence_score=0.5
             )

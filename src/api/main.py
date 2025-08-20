@@ -252,6 +252,7 @@ After your natural language response, include a JSON block on a new line with th
   ]
 }
 
+IMPORTANT: Do NOT use markdown code blocks (```json). Just include the raw JSON after your natural language response.
 Keep the natural language response and JSON block completely separate.
 """
             
@@ -1781,22 +1782,15 @@ def _clean_natural_response(text: str) -> str:
     """Clean natural response by removing JSON blocks."""
     import re
     
-    # First, try to find and remove the JSON block that comes after the natural text
-    # Look for the pattern: natural text followed by JSON block
-    lines = text.split('\n')
-    natural_lines = []
+    # Remove any markdown code blocks first
+    cleaned = re.sub(r'```json\s*\n.*?\n```', '', text, flags=re.DOTALL)
     
-    for line in lines:
-        # Stop when we hit a JSON block
-        if line.strip().startswith('{') or line.strip().startswith('['):
-            break
-        # Stop when we hit a line that looks like JSON (contains quotes and commas)
-        if '"' in line and ',' in line and ('{' in line or '[' in line):
-            break
-        natural_lines.append(line)
+    # Then remove any remaining JSON blocks
+    cleaned = re.sub(r'```\s*\n.*?\n```', '', cleaned, flags=re.DOTALL)
     
-    # Join the natural lines
-    cleaned = '\n'.join(natural_lines)
+    # Remove any trailing JSON fragments
+    cleaned = re.sub(r'```json\s*$', '', cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r'```\s*$', '', cleaned, flags=re.MULTILINE)
     
     # Clean up extra whitespace and newlines
     cleaned = re.sub(r'\n\s*\n', '\n', cleaned)
@@ -1819,13 +1813,23 @@ def _extract_cards_from_text(text: str, location_hint: Optional[str]) -> List[Di
         name = None
         dish = None
         reason = None
-        # very light heuristics
-        if ":" in ln:
+        
+        # Extract restaurant name from numbered list items
+        if ln[:2].isdigit() and " - " in ln:
+            # Format: "1. **Restaurant Name** - Description"
+            parts = ln.split(" - ", 1)
+            name_part = parts[0].strip()
+            # Remove number and extract name from bold text
+            name_part = name_part.split(".", 1)[1].strip() if "." in name_part else name_part
+            name = name_part.replace("**", "").strip()
+            reason = parts[1].strip() if len(parts) > 1 else None
+        elif ":" in ln:
             parts = ln.split(":", 1)
             name = parts[0].strip(" -*#")
             reason = parts[1].strip()
         else:
             name = ln.strip(" -*#")
+            
         cards.append({
             "restaurant_name": name,
             "dish_name": dish,

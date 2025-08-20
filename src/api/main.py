@@ -1824,6 +1824,25 @@ def _clean_natural_response(text: str) -> str:
     
     return cleaned
 
+def _normalize_restaurant_name(raw_name: Optional[str]) -> Optional[str]:
+    """Normalize a restaurant name by removing list numbering and markdown bold markers."""
+    if not raw_name:
+        return raw_name
+    try:
+        import re
+        name = str(raw_name)
+        # Remove markdown bold **name**
+        name = re.sub(r"\*\*(.*?)\*\*", r"\1", name)
+        # Strip leading list numbers like "1.", "12)", "3 -"
+        name = re.sub(r"^\s*\d+[\.)-]?\s*", "", name)
+        # Strip leading bullets or hashes
+        name = re.sub(r"^[\-*#]+\s*", "", name)
+        # Collapse extra spaces
+        name = re.sub(r"\s+", " ", name).strip()
+        return name
+    except Exception:
+        return raw_name.strip() if isinstance(raw_name, str) else raw_name
+
 def _extract_cards_from_text(text: str, location_hint: Optional[str]) -> List[Dict[str, Any]]:
     items = _extract_items_json(text)
     if items:
@@ -1832,16 +1851,19 @@ def _extract_cards_from_text(text: str, location_hint: Optional[str]) -> List[Di
     lines = [ln.strip("- ").strip() for ln in text.splitlines() if ln.strip()]
     rows = []
     for ln in lines:
-        if ln[:2].isdigit() or ln.startswith("*") or " - " in ln or "**" in ln:
+        import re
+        if re.match(r"^\s*\d+", ln) or ln.startswith("*") or " - " in ln or "**" in ln:
             rows.append(ln)
     cards = []
+    seen_names = set()
     for ln in rows[:3]:
         name = None
         dish = None
         reason = None
         
         # Extract restaurant name from numbered list items
-        if ln[:2].isdigit() and " - " in ln:
+        import re
+        if re.match(r"^\s*\d+", ln) and " - " in ln:
             # Format: "1. **Restaurant Name** - Description"
             parts = ln.split(" - ", 1)
             name_part = parts[0].strip()
@@ -1849,10 +1871,9 @@ def _extract_cards_from_text(text: str, location_hint: Optional[str]) -> List[Di
             name_part = name_part.split(".", 1)[1].strip() if "." in name_part else name_part
             name = name_part.replace("**", "").strip()
             reason = parts[1].strip() if len(parts) > 1 else None
-        elif ln[:2].isdigit() and "**" in ln:
+        elif re.match(r"^\s*\d+", ln) and "**" in ln:
             # Format: "1. **Restaurant Name** - Description" (without the dash)
             # Extract the bold text between ** markers
-            import re
             bold_match = re.search(r'\*\*(.*?)\*\*', ln)
             if bold_match:
                 name = bold_match.group(1).strip()
@@ -1868,7 +1889,16 @@ def _extract_cards_from_text(text: str, location_hint: Optional[str]) -> List[Di
             reason = parts[1].strip()
         else:
             name = ln.strip(" -*#")
-            
+        
+        # Normalize and deduplicate by name
+        name = _normalize_restaurant_name(name)
+        if not name:
+            continue
+        name_key = name.lower()
+        if name_key in seen_names:
+            continue
+        seen_names.add(name_key)
+
         cards.append({
             "restaurant_name": name,
             "dish_name": dish,

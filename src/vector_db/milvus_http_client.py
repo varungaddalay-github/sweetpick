@@ -7,8 +7,20 @@ import httpx
 import json
 import asyncio
 from typing import List, Dict, Any, Optional
-from src.utils.config import get_settings
-from src.utils.logger import app_logger
+# Fallback logger for import issues
+import logging
+app_logger = logging.getLogger(__name__)
+app_logger.setLevel(logging.INFO)
+if not app_logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    app_logger.addHandler(handler)
+
+try:
+    from src.utils.config import get_settings
+except ImportError:
+    get_settings = None
 
 
 class MilvusHTTPClient:
@@ -16,14 +28,38 @@ class MilvusHTTPClient:
     
     def __init__(self):
         """Initialize the Milvus HTTP client."""
-        self.settings = get_settings()
-        self.base_url = self.settings.milvus_uri.rstrip('/')
-        self.token = self.settings.milvus_token
-        self.headers = {
-            "Authorization": f"Bearer {self.token}",
-            "Content-Type": "application/json"
-        }
-        self.timeout = 30.0
+        import os
+        
+        if get_settings is not None:
+            try:
+                self.settings = get_settings()
+                self.base_url = self.settings.milvus_uri.rstrip('/')
+                self.token = self.settings.milvus_token
+                self.headers = {
+                    "Authorization": f"Bearer {self.token}",
+                    "Content-Type": "application/json"
+                }
+                self.timeout = 30.0
+            except Exception as e:
+                # Fallback to environment variables directly
+                self.base_url = os.getenv("MILVUS_URI", "").rstrip('/')
+                self.token = os.getenv("MILVUS_TOKEN", "")
+                self.headers = {
+                    "Authorization": f"Bearer {self.token}",
+                    "Content-Type": "application/json"
+                }
+                self.timeout = 30.0
+                app_logger.warning(f"Using fallback initialization for Milvus HTTP client: {e}")
+        else:
+            # Direct environment variable access
+            self.base_url = os.getenv("MILVUS_URI", "").rstrip('/')
+            self.token = os.getenv("MILVUS_TOKEN", "")
+            self.headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json"
+            }
+            self.timeout = 30.0
+            app_logger.info("Using direct environment variable access for Milvus HTTP client")
         
     async def _make_request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Dict[str, Any]:
         """Make HTTP request to Milvus API."""

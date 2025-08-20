@@ -1710,9 +1710,29 @@ def _extract_items_json(text: str) -> List[Dict[str, Any]]:
             start = alt_start
         if start == -1:
             return []
-        end = max(text.rfind("}"), text.rfind("]"))
-        if end == -1 or end <= start:
+        
+        # Find the matching closing brace/bracket
+        brace_count = 0
+        bracket_count = 0
+        end = start
+        
+        for i, char in enumerate(text[start:], start):
+            if char == '{':
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+            elif char == '[':
+                bracket_count += 1
+            elif char == ']':
+                bracket_count -= 1
+            
+            if brace_count == 0 and bracket_count == 0:
+                end = i
+                break
+        
+        if end <= start:
             return []
+            
         block = text[start:end+1]
         parsed = json.loads(block)
         if isinstance(parsed, dict) and "items" in parsed and isinstance(parsed["items"], list):
@@ -1782,15 +1802,21 @@ def _clean_natural_response(text: str) -> str:
     """Clean natural response by removing JSON blocks."""
     import re
     
-    # Remove any markdown code blocks first
-    cleaned = re.sub(r'```json\s*\n.*?\n```', '', text, flags=re.DOTALL)
+    # Split into lines and find where JSON starts
+    lines = text.split('\n')
+    natural_lines = []
     
-    # Then remove any remaining JSON blocks
-    cleaned = re.sub(r'```\s*\n.*?\n```', '', cleaned, flags=re.DOTALL)
+    for line in lines:
+        # Stop when we hit a JSON block
+        if line.strip().startswith('{') and '"items"' in line:
+            break
+        # Stop when we hit a line that looks like JSON start
+        if line.strip().startswith('{') and ('"restaurant_name"' in line or '"items"' in line):
+            break
+        natural_lines.append(line)
     
-    # Remove any trailing JSON fragments
-    cleaned = re.sub(r'```json\s*$', '', cleaned, flags=re.MULTILINE)
-    cleaned = re.sub(r'```\s*$', '', cleaned, flags=re.MULTILINE)
+    # Join the natural lines
+    cleaned = '\n'.join(natural_lines)
     
     # Clean up extra whitespace and newlines
     cleaned = re.sub(r'\n\s*\n', '\n', cleaned)

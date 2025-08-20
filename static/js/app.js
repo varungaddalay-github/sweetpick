@@ -384,6 +384,11 @@ class SweetPickApp {
     }
 
     updateResultsHeader(data) {
+        // Debug logging to see the data structure
+        console.log('updateResultsHeader data:', data);
+        console.log('Data type:', typeof data);
+        console.log('Data keys:', Object.keys(data || {}));
+        
         const resultsCount = document.getElementById('resultsCount');
         const resultsTime = document.getElementById('resultsTime');
         

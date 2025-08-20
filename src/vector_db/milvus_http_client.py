@@ -298,22 +298,31 @@ class MilvusHTTPClient:
                 "error": str(e)
             }
     
-    async def _discover_api_endpoints(self) -> Dict[str, Any]:
-        """Discover available API endpoints."""
-        endpoints_to_test = [
-            "/",
-            "/health",
-            "/v1",
-            "/v2",
-            "/api",
-            "/api/v1",
-            "/v1/vector",
-            "/v1/vector/collections",
-            "/v2/vectordb",
-            "/v1/collections",
-            "/v2/vectordb/collections/list",
-            "/api/v1/collections"
-        ]
+                 async def has_collection(self, collection_name: str) -> bool:
+                 """Check if a collection exists."""
+                 try:
+                     collections = await self.list_collections()
+                     return collection_name in collections
+                 except Exception as e:
+                     app_logger.error(f"Error checking collection existence: {e}")
+                     return False
+             
+             async def _discover_api_endpoints(self) -> Dict[str, Any]:
+                 """Discover available API endpoints."""
+                 endpoints_to_test = [
+                     "/",
+                     "/health",
+                     "/v1",
+                     "/v2",
+                     "/api",
+                     "/api/v1",
+                     "/v1/vector",
+                     "/v1/vector/collections",
+                     "/v2/vectordb",
+                     "/v1/collections",
+                     "/v2/vectordb/collections/list",
+                     "/api/v1/collections"
+                 ]
         
         results = {}
         for endpoint in endpoints_to_test:

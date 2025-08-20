@@ -1130,7 +1130,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             try:
                 app_logger.info("🔄 Testing settings...")
                 from src.utils.config import get_settings
-                test_settings = get_settings()
+                get_settings()
                 app_logger.info("✅ Settings OK")
                 
                 app_logger.info("🔄 Testing OpenAI import...")
@@ -1140,7 +1140,7 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 app_logger.info("🔄 Testing OpenAI client creation...")
                 openai_key = os.getenv("OPENAI_API_KEY")
                 if openai_key:
-                    test_client = AsyncOpenAI(api_key=openai_key)
+                    AsyncOpenAI(api_key=openai_key)
                     app_logger.info("✅ OpenAI client creation OK")
                 else:
                     app_logger.error("❌ OPENAI_API_KEY not found in environment")

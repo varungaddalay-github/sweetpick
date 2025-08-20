@@ -1157,11 +1157,22 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 app_logger.error(f"❌ ResponseGenerator debug failed at: {debug_error}")
 
 
-        # Try to use response generator if available
-        if response_generator:
+        # Try to use response generator if available OR initialize it now
+        current_response_generator = response_generator
+
+        if current_response_generator is None:
+            # Try to initialize it now since we know it works from the debug test
+            try:
+                from src.processing.response_generator import ResponseGenerator
+                current_response_generator = ResponseGenerator()
+                app_logger.info("✅ ResponseGenerator initialized successfully in query")
+            except Exception as e:
+                app_logger.error(f"❌ Failed to initialize ResponseGenerator in query: {e}")
+
+        if current_response_generator:
             try:
                 app_logger.info(f"🎯 Attempting to generate natural response for query: '{request.query}'")
-                natural_response = await response_generator.generate_conversational_response(
+                natural_response = await current_response_generator.generate_conversational_response(
                     request.query, 
                     recommendations, 
                     query_metadata

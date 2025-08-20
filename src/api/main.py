@@ -579,20 +579,63 @@ async def lifespan(app: FastAPI):
     try:
         app_logger.info("Starting SweetPick API...")
         
-        # Initialize Milvus client
-        milvus_client = MilvusClient()
+        # Initialize components only if available
+        milvus_client = None
+        query_parser = None
+        retrieval_engine = None
+        fallback_handler = None
+        response_generator = None
         
-        # Initialize query processing components
-        query_parser = QueryParser()
-        retrieval_engine = EnhancedRetrievalEngine(milvus_client)
-        fallback_handler = FallbackHandler(retrieval_engine, query_parser)
-        response_generator = ResponseGenerator()  # Add this line
+        # Try to initialize Milvus HTTP client
+        if MILVUS_AVAILABLE:
+            try:
+                from src.vector_db.milvus_http_client import MilvusHTTPClient
+                milvus_client = MilvusHTTPClient()
+                app_logger.info("✅ Milvus HTTP client initialized")
+            except Exception as e:
+                app_logger.error(f"Failed to initialize Milvus HTTP client: {e}")
         
-        app_logger.info("API startup completed successfully")
+        # Try to initialize query parser
+        if QUERY_PARSER_AVAILABLE:
+            try:
+                from src.query_processing.query_parser import QueryParser
+                query_parser = QueryParser()
+                app_logger.info("✅ Query parser initialized")
+            except Exception as e:
+                app_logger.error(f"Failed to initialize query parser: {e}")
+        
+        # Try to initialize retrieval engine
+        if RETRIEVAL_AVAILABLE and milvus_client:
+            try:
+                from src.query_processing.enhanced_retrieval_engine import EnhancedRetrievalEngine
+                retrieval_engine = EnhancedRetrievalEngine(milvus_client)
+                app_logger.info("✅ Retrieval engine initialized")
+            except Exception as e:
+                app_logger.error(f"Failed to initialize retrieval engine: {e}")
+        
+        # Try to initialize fallback handler
+        if FALLBACK_AVAILABLE and retrieval_engine and query_parser:
+            try:
+                from src.fallback.fallback_handler import FallbackHandler
+                fallback_handler = FallbackHandler(retrieval_engine, query_parser)
+                app_logger.info("✅ Fallback handler initialized")
+            except Exception as e:
+                app_logger.error(f"Failed to initialize fallback handler: {e}")
+        
+        # Try to initialize response generator
+        if RESPONSE_GENERATOR_AVAILABLE:
+            try:
+                from src.processing.response_generator import ResponseGenerator
+                response_generator = ResponseGenerator()
+                app_logger.info("✅ Response generator initialized")
+            except Exception as e:
+                app_logger.error(f"Failed to initialize response generator: {e}")
+        
+        app_logger.info("API startup completed")
         
     except Exception as e:
         app_logger.error(f"Error during startup: {e}")
-        raise
+        # Don't raise - continue with partial initialization
     
     yield
     

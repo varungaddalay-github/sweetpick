@@ -761,7 +761,41 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
             raise HTTPException(status_code=500, detail="Configuration not available")
         
         if not MILVUS_AVAILABLE:
-            raise HTTPException(status_code=500, detail="Milvus client not available")
+            # Instead of failing, provide a fallback response
+            print("⚠️ Milvus not available, using fallback response")
+            return QueryResponse(
+                query=request.query,
+                query_type="fallback",
+                recommendations=[
+                    {
+                        "dish_name": "Margherita Pizza",
+                        "restaurant_name": "Example Italian Restaurant",
+                        "restaurant_id": "example_1",
+                        "neighborhood": "Manhattan",
+                        "cuisine_type": "Italian",
+                        "topic_mentions": 0,
+                        "topic_score": 0.0,
+                        "final_score": 0.8,
+                        "source": "fallback"
+                    },
+                    {
+                        "dish_name": "Spaghetti Carbonara",
+                        "restaurant_name": "Sample Italian Place",
+                        "restaurant_id": "example_2", 
+                        "neighborhood": "Manhattan",
+                        "cuisine_type": "Italian",
+                        "topic_mentions": 0,
+                        "topic_score": 0.0,
+                        "final_score": 0.7,
+                        "source": "fallback"
+                    }
+                ],
+                natural_response="I'm currently in fallback mode while the database is being set up. Here are some popular Italian dishes you might enjoy in Manhattan!",
+                fallback_used=True,
+                fallback_reason="Milvus database not available - using fallback data",
+                processing_time=(datetime.now() - start_time).total_seconds(),
+                confidence_score=0.5
+            )
         
         print("🔍 Essential components check passed")
         # 🔒 ABUSE PROTECTION: Check request before processing

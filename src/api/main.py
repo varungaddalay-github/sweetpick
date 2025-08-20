@@ -401,7 +401,7 @@ async def validate_query_scope(parsed_query: Dict[str, Any], original_query: str
         return False, cultural_sensitivity_issue
     
     # Handle scope issues
-    if unsupported_location or unsupported_cuisine:
+    if unsupported_location and unsupported_cuisine:
         app_logger.info(f"🚫 Scope validation failed - calling suggest_alternatives_with_choice")
         suggestion = await suggest_alternatives_with_choice(
             original_query, 
@@ -409,7 +409,7 @@ async def validate_query_scope(parsed_query: Dict[str, Any], original_query: str
             unsupported_cuisine
         )
         return False, suggestion
-    
+            
     app_logger.info(f"✅ Scope validation passed")
     return True, None
 

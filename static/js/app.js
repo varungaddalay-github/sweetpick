@@ -719,11 +719,8 @@ class SweetPickApp {
         }
         
         // 🔍 SCORE INFO - Show final score and confidence when available
-        if (item.final_score !== undefined) {
-            additionalInfo += `<span class="final-score"><i class="fas fa-chart-line"></i> Score: ${(item.final_score * 100).toFixed(0)}%</span>`;
-        }
         if (item.confidence !== undefined) {
-            additionalInfo += `<span class="confidence-score"><i class="fas fa-shield-alt"></i> Confidence: ${(item.confidence * 100).toFixed(0)}%</span>`;
+            additionalInfo += `<span class="confidence-score"><i class="fas fa-shield-alt"></i> Confidence: ${(item.confidence).toFixed(0)}%</span>`;
         }
         
         // 🔍 LOG ADDITIONAL INFO LOGIC
@@ -765,7 +762,6 @@ class SweetPickApp {
                     ${reason}
                     ${this.renderDishBadges(item)}
                     <div class="result-footer">
-                        <span class="result-score">Score: ${((score || 0) * 100).toFixed(0)}%</span>
                         ${badge}
                     </div>
                 </div>

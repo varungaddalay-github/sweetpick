@@ -1085,7 +1085,26 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
                 recommendations = []
                 fallback_used = True
                 fallback_reason = "Retrieval engine not available"
-        
+        # Add this formatting step after getting raw results:
+       
+        if recommendations:
+            formatted_recommendations = []
+            for i, rec in enumerate(recommendations):
+                formatted_rec = {
+                    "id": rec.get('restaurant_id', f"rec_{i}"),
+                    "restaurant_name": rec.get('restaurant_name', 'Restaurant'),
+                    "dish_name": rec.get('dish_name', 'Dish'),
+                    "cuisine_type": rec.get('cuisine_type', cuisine),
+                    "neighborhood": rec.get('neighborhood', 'Manhattan'),
+                    "description": f"Try the {rec.get('dish_name', 'dish')} at {rec.get('restaurant_name', 'this restaurant')}",
+                    "final_score": float(rec.get('final_score', 0.8)),
+                    "rating": 4.5,  # Default since your data doesn't have this
+                    "price_range": "$$",  # Default since your data doesn't have this
+                    "source": "vector_search",  # This tells UI it's real data
+                    "confidence": float(rec.get('final_score', 0.8))
+                }
+                formatted_recommendations.append(formatted_rec)
+            recommendations = formatted_recommendations
         # Apply fallback if needed
         if not recommendations and not fallback_used and fallback_handler is not None:
             recommendations, fallback_used, fallback_reason = await fallback_handler.execute_fallback_strategy(
@@ -1196,23 +1215,23 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         
         app_logger.info(f"Query processed in {processing_time:.2f}s with {len(recommendations)} recommendations")
         
-        # Debug: Log the structure of recommendations
-        if recommendations:
-            app_logger.info(f"First recommendation structure: {list(recommendations[0].keys())}")
-            app_logger.info(f"First recommendation sample: {recommendations[0]}")
+        # # Debug: Log the structure of recommendations
+        # if recommendations:
+        #     app_logger.info(f"First recommendation structure: {list(recommendations[0].keys())}")
+        #     app_logger.info(f"First recommendation sample: {recommendations[0]}")
             
-            # Check for non-serializable objects and convert numpy types
-            for i, rec in enumerate(recommendations):
-                for key, value in rec.items():
-                    # Convert numpy types to native Python types
-                    if hasattr(value, 'item'):  # numpy scalar
-                        recommendations[i][key] = value.item()
-                    elif hasattr(value, 'tolist'):  # numpy array
-                        recommendations[i][key] = value.tolist()
-                    elif not isinstance(value, (str, int, float, bool, list, dict, type(None))):
-                        app_logger.error(f"Non-serializable value in recommendation {i}, key '{key}': {type(value)} = {value}")
-                        # Convert to string as fallback
-                        recommendations[i][key] = str(value)
+        #     # Check for non-serializable objects and convert numpy types
+        #     for i, rec in enumerate(recommendations):
+        #         for key, value in rec.items():
+        #             # Convert numpy types to native Python types
+        #             if hasattr(value, 'item'):  # numpy scalar
+        #                 recommendations[i][key] = value.item()
+        #             elif hasattr(value, 'tolist'):  # numpy array
+        #                 recommendations[i][key] = value.tolist()
+        #             elif not isinstance(value, (str, int, float, bool, list, dict, type(None))):
+        #                 app_logger.error(f"Non-serializable value in recommendation {i}, key '{key}': {type(value)} = {value}")
+        #                 # Convert to string as fallback
+        #                 recommendations[i][key] = str(value)
         
         return QueryResponse(
             query=request.query,

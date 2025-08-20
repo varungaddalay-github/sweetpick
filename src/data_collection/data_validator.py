@@ -816,3 +816,96 @@ class DataValidator:
             cleaned['likes'] = int(cleaned['likes'])
         
         return cleaned 
+
+    # ==========================================================================
+    # SOURCE-SPECIFIC FILTERS (ENFORCEMENT)
+    # ==========================================================================
+    def filter_google_city_and_dedupe(self, restaurants: List[Dict], city: str, neighborhood: Optional[str] = None) -> List[Dict]:
+        """Enforce city/neighborhood consistency and deduplicate Google results.
+
+        Checks:
+        1) City consistency: `full_address` contains city OR `city` field equals the requested city
+        2) Neighborhood consistency (optional): if provided, require presence in `neighborhood` or `full_address`
+        3) Deduplication: by normalized (restaurant_name + full_address) fallback to (name + city) or (name + lat/lon)
+        """
+        normalized_seen = set()
+        filtered: List[Dict] = []
+
+        req_city = (city or "").strip().lower()
+        req_neighborhood = (neighborhood or "").strip().lower()
+
+        for r in restaurants:
+            name = (r.get('restaurant_name') or '').strip().lower()
+            addr = (r.get('full_address') or '').strip().lower()
+            r_city = (r.get('city') or '').strip().lower()
+            r_neigh = (r.get('neighborhood') or '').strip().lower()
+
+            # City consistency
+            city_ok = (req_city == r_city) or (req_city and addr and req_city in addr)
+            if not city_ok:
+                continue
+
+            # Neighborhood consistency (if provided)
+            if req_neighborhood:
+                neigh_ok = (req_neighborhood in r_neigh) or (addr and req_neighborhood in addr)
+                if not neigh_ok:
+                    continue
+
+            # Build dedupe key
+            lat = r.get('latitude')
+            lon = r.get('longitude')
+            if addr:
+                key = f"{name}|{addr}"
+            elif lat and lon:
+                # round coordinates to reduce noise
+                try:
+                    key = f"{name}|{float(lat):.4f},{float(lon):.4f}"
+                except Exception:
+                    key = f"{name}|{r_city}"
+            else:
+                key = f"{name}|{r_city}"
+
+            if key in normalized_seen:
+                continue
+            normalized_seen.add(key)
+            filtered.append(r)
+
+        return filtered
+
+    def filter_yelp_city_and_dedupe(self, restaurants: List[Dict], city: str, neighborhood: Optional[str] = None) -> List[Dict]:
+        """Enforce city/neighborhood consistency and deduplicate Yelp results.
+
+        Checks:
+        1) City consistency: `full_address`/`address` contains city OR `city` field equals requested
+        2) Neighborhood consistency (optional): require neighborhood substring in address if provided
+        3) Deduplication: by normalized (restaurant_name + full_address) fallback to (name + city)
+        """
+        normalized_seen = set()
+        filtered: List[Dict] = []
+
+        req_city = (city or "").strip().lower()
+        req_neighborhood = (neighborhood or "").strip().lower()
+
+        for r in restaurants:
+            name = (r.get('restaurant_name') or '').strip().lower()
+            addr = (r.get('full_address') or r.get('address') or '').strip().lower()
+            r_city = (r.get('city') or '').strip().lower()
+
+            # City consistency
+            city_ok = (req_city == r_city) or (req_city and addr and req_city in addr)
+            if not city_ok:
+                continue
+
+            # Neighborhood consistency (if provided)
+            if req_neighborhood:
+                if not (addr and req_neighborhood in addr):
+                    continue
+
+            # Build dedupe key
+            key = f"{name}|{addr or r_city}"
+            if key in normalized_seen:
+                continue
+            normalized_seen.add(key)
+            filtered.append(r)
+
+        return filtered

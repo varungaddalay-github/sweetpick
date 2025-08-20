@@ -167,6 +167,17 @@ class SerpAPICollector:
                 if "error" in results:
                     app_logger.error(f"SerpAPI error: {results['error']}")
 
+            # Source-specific quality checks: city consistency + dedupe for Google
+            if google_restaurants:
+                try:
+                    from src.data_collection.data_validator import DataValidator
+                    dv = DataValidator()
+                    google_restaurants = dv.filter_google_city_and_dedupe(
+                        google_restaurants, city=city, neighborhood=neighborhood or None
+                    )
+                except Exception as ve:
+                    app_logger.warning(f"Google city/dedupe filtering skipped: {ve}")
+
             merged: List[Dict] = list(google_restaurants)
 
             # Optionally augment with Yelp via SerpAPI
@@ -174,6 +185,16 @@ class SerpAPICollector:
                 try:
                     yelp_results = await self._search_yelp_restaurants(city, cuisine, limit=self.settings.serpapi_yelp_limit)
                     if yelp_results:
+                        # Source-specific quality checks: city consistency + dedupe for Yelp
+                        try:
+                            from src.data_collection.data_validator import DataValidator
+                            dv = DataValidator()
+                            yelp_results = dv.filter_yelp_city_and_dedupe(
+                                yelp_results, city=city, neighborhood=neighborhood or None
+                            )
+                        except Exception as ve:
+                            app_logger.warning(f"Yelp city/dedupe filtering skipped: {ve}")
+
                         merged = self._merge_dedupe_sources(google_restaurants, yelp_results, max_total=max_results)
                         app_logger.info(f"Merged results: Google={len(google_restaurants)}, Yelp={len(yelp_results)}, Merged={len(merged)}")
                 except Exception as ye:

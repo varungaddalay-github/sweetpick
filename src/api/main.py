@@ -752,6 +752,18 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
     start_time = datetime.now()
     
     try:
+        # Basic logging for debugging
+        print(f"🔍 Query received: {request.query}")
+        print(f"🔍 Request details: {request.dict()}")
+        
+        # Check if essential components are available
+        if not CONFIG_AVAILABLE:
+            raise HTTPException(status_code=500, detail="Configuration not available")
+        
+        if not MILVUS_AVAILABLE:
+            raise HTTPException(status_code=500, detail="Milvus client not available")
+        
+        print("🔍 Essential components check passed")
         # 🔒 ABUSE PROTECTION: Check request before processing
         client_id = get_client_id(http_request)
         is_allowed, security_error, security_report = await abuse_protection.check_request(
@@ -935,8 +947,29 @@ async def process_query(request: QueryRequest, background_tasks: BackgroundTasks
         )
         
     except Exception as e:
+        import traceback
+        error_details = {
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "traceback": traceback.format_exc(),
+            "components_available": {
+                "config": CONFIG_AVAILABLE,
+                "milvus": MILVUS_AVAILABLE,
+                "query_parser": QUERY_PARSER_AVAILABLE,
+                "retrieval": RETRIEVAL_AVAILABLE,
+                "fallback": FALLBACK_AVAILABLE
+            }
+        }
+        
+        print(f"❌ Query processing error: {error_details}")
         app_logger.error(f"Error processing query: {e}")
-        raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
+        app_logger.error(f"Full traceback: {traceback.format_exc()}")
+        
+        # Return detailed error for debugging
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error processing query: {str(e)} | Type: {type(e).__name__} | Check /test-app for component status"
+        )
 
 
 @app.post("/query/web-search", response_model=QueryResponse)

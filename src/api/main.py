@@ -580,11 +580,7 @@ async def lifespan(app: FastAPI):
         app_logger.info("Starting SweetPick API...")
         
         # Initialize components only if available
-        milvus_client = None
-        query_parser = None
-        retrieval_engine = None
-        fallback_handler = None
-        response_generator = None
+        # Note: Don't re-initialize to None as these are global variables
         
         # Try to initialize Milvus HTTP client
         if MILVUS_AVAILABLE:
@@ -632,6 +628,7 @@ async def lifespan(app: FastAPI):
                 app_logger.error(f"Failed to initialize response generator: {e}")
         
         app_logger.info("API startup completed")
+        app_logger.info(f"🔍 Global variables after startup: milvus_client={milvus_client is not None}, query_parser={query_parser is not None}, retrieval_engine={retrieval_engine is not None}, fallback_handler={fallback_handler is not None}, response_generator={response_generator is not None}")
         
     except Exception as e:
         app_logger.error(f"Error during startup: {e}")

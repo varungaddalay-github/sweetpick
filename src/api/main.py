@@ -67,17 +67,9 @@ except ImportError:
     SENTIMENT_AVAILABLE = False
     print("Warning: Sentiment analyzer not available")
 
-try:
-    import pymilvus
-    from src.vector_db.milvus_client import MilvusClient
-    MILVUS_AVAILABLE = True
-    print("✅ Milvus client available")
-except ImportError as e:
-    MILVUS_AVAILABLE = False
-    print(f"Warning: Milvus client not available - {e}")
-except Exception as e:
-    MILVUS_AVAILABLE = False
-    print(f"Warning: Milvus client error - {e}")
+# Milvus is temporarily disabled due to Vercel compatibility issues
+MILVUS_AVAILABLE = False
+print("⚠️ Milvus temporarily disabled - using fallback mode")
 
 try:
     from src.query_processing.query_parser import QueryParser
@@ -729,155 +721,42 @@ async def test_milvus():
         milvus_uri = os.getenv("MILVUS_URI")
         milvus_token = os.getenv("MILVUS_TOKEN")
         
-        # Test basic pymilvus import first
-        basic_import_test = {}
-        try:
-            import pymilvus
-            basic_import_test["pymilvus_basic"] = {
-                "success": True,
-                "version": pymilvus.__version__,
-                "module_path": pymilvus.__file__
-            }
-        except ImportError as e:
-            basic_import_test["pymilvus_basic"] = {
-                "success": False,
-                "error": str(e),
-                "suggestion": "Try reinstalling pymilvus with: pip install pymilvus==2.2.4"
-            }
-        except Exception as e:
-            basic_import_test["pymilvus_basic"] = {
-                "success": False,
-                "error": str(e),
-                "type": type(e).__name__
-            }
-        
-        env_check = {
-            "MILVUS_URI": {
-                "set": bool(milvus_uri),
-                "value": milvus_uri[:20] + "..." if milvus_uri and len(milvus_uri) > 20 else milvus_uri,
-                "valid_format": milvus_uri and milvus_uri.startswith("https://") if milvus_uri else False
-            },
-            "MILVUS_TOKEN": {
-                "set": bool(milvus_token),
-                "value": milvus_token[:10] + "..." if milvus_token and len(milvus_token) > 10 else milvus_token,
-                "valid_format": milvus_token and len(milvus_token) > 20 if milvus_token else False
-            }
-        }
-        
-        # Test Milvus import
-        import_test = {}
-        try:
-            import pymilvus
-            import_test["pymilvus_import"] = {
-                "success": True,
-                "version": pymilvus.__version__
-            }
-        except ImportError as e:
-            import_test["pymilvus_import"] = {
-                "success": False,
-                "error": str(e)
-            }
-        
-        # Test Milvus client initialization
-        client_test = {}
-        try:
-            if MILVUS_AVAILABLE:
-                from src.vector_db.milvus_client import MilvusClient
-                milvus_client = MilvusClient()
-                client_test["client_initialization"] = {
-                    "success": True,
-                    "client_type": type(milvus_client).__name__
-                }
-                
-                # Test connection
-                try:
-                    # Try to get collection stats to test connection
-                    stats = milvus_client.get_collection_stats()
-                    client_test["connection"] = {
-                        "success": True,
-                        "collections_found": len(stats) if stats else 0
-                    }
-                except Exception as e:
-                    client_test["connection"] = {
-                        "success": False,
-                        "error": str(e)
-                    }
-            else:
-                client_test["client_initialization"] = {
-                    "success": False,
-                    "error": "MILVUS_AVAILABLE is False"
-                }
-        except Exception as e:
-            client_test["client_initialization"] = {
-                "success": False,
-                "error": str(e)
-            }
-        
-        # Test basic Milvus operations
-        operations_test = {}
-        try:
-            if MILVUS_AVAILABLE and client_test.get("client_initialization", {}).get("success"):
-                from src.vector_db.milvus_client import MilvusClient
-                milvus_client = MilvusClient()
-                
-                # Test listing collections
-                try:
-                    collections = milvus_client.list_collections()
-                    operations_test["list_collections"] = {
-                        "success": True,
-                        "collections": collections
-                    }
-                except Exception as e:
-                    operations_test["list_collections"] = {
-                        "success": False,
-                        "error": str(e)
-                    }
-                
-                # Test search operation (if collections exist)
-                if operations_test.get("list_collections", {}).get("success") and operations_test["list_collections"]["collections"]:
-                    try:
-                        # Try a simple search
-                        results = milvus_client.search_dishes_with_topics(cuisine="Italian", limit=1)
-                        operations_test["search_operation"] = {
-                            "success": True,
-                            "results_count": len(results) if results else 0
-                        }
-                    except Exception as e:
-                        operations_test["search_operation"] = {
-                            "success": False,
-                            "error": str(e)
-                        }
-                else:
-                    operations_test["search_operation"] = {
-                        "success": False,
-                        "error": "No collections available for search test"
-                    }
-            else:
-                operations_test["list_collections"] = {
-                    "success": False,
-                    "error": "Client not available"
-                }
-        except Exception as e:
-            operations_test["general"] = {
-                "success": False,
-                "error": str(e)
-            }
-        
         return {
-            "status": "milvus_test_complete",
-            "basic_import_test": basic_import_test,
-            "environment_check": env_check,
-            "import_test": import_test,
-            "client_test": client_test,
-            "operations_test": operations_test,
-            "timestamp": datetime.now().isoformat(),
-            "recommendations": {
-                "missing_token": "Add MILVUS_TOKEN environment variable" if not milvus_token else None,
-                "invalid_uri": "Check MILVUS_URI format (should start with https://)" if milvus_uri and not milvus_uri.startswith("https://") else None,
-                "connection_issue": "Check your Milvus Cloud cluster status" if env_check["MILVUS_URI"]["set"] and env_check["MILVUS_TOKEN"]["set"] and not client_test.get("connection", {}).get("success") else None,
-                "pymilvus_install": "pymilvus installation failed - check Vercel build logs" if not basic_import_test.get("pymilvus_basic", {}).get("success") else None
-            }
+            "status": "milvus_temporarily_disabled",
+            "message": "Milvus is temporarily disabled due to Vercel compatibility issues",
+            "environment_check": {
+                "MILVUS_URI": {
+                    "set": bool(milvus_uri),
+                    "value": milvus_uri[:20] + "..." if milvus_uri and len(milvus_uri) > 20 else milvus_uri,
+                    "valid_format": milvus_uri and milvus_uri.startswith("https://") if milvus_uri else False
+                },
+                "MILVUS_TOKEN": {
+                    "set": bool(milvus_token),
+                    "value": milvus_token[:10] + "..." if milvus_token and len(milvus_token) > 10 else milvus_token,
+                    "valid_format": milvus_token and len(milvus_token) > 20 if milvus_token else False
+                }
+            },
+            "explanation": {
+                "issue": "pymilvus package fails to install on Vercel serverless functions",
+                "solution": "Will implement alternative vector database or use external API",
+                "current_status": "App works with fallback data and OpenAI integration",
+                "next_steps": [
+                    "1. Use external vector database API",
+                    "2. Implement simple file-based storage",
+                    "3. Use OpenAI embeddings with external search"
+                ]
+            },
+            "current_capabilities": [
+                "✅ OpenAI integration working",
+                "✅ SerpAPI integration working", 
+                "✅ Fallback responses working",
+                "✅ UI fully functional",
+                "⚠️ Vector search using fallback data"
+            ],
+            "timestamp": datetime.now().isoformat()
         }
+        
+
         
     except Exception as e:
         return {

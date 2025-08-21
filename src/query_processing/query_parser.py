@@ -104,7 +104,7 @@ class QueryParser:
             app_logger.warning("Cache manager not available")
         
         # Enhanced system prompt
-        self.system_prompt = """You are an expert query parser for a comprehensive restaurant recommendation system. Your role is to accurately extract structured information from natural language restaurant queries while maintaining high precision and appropriate confidence scoring.
+        self.system_prompt = """You are an expert query parser for a comprehensive Dish Discovery restaurant recommendation system. Your role is to accurately extract structured information from natural language restaurant queries while maintaining high precision and appropriate confidence scoring.
 
 ## Core Instructions
 1. **Accuracy over confidence** - Only assign high confidence when you're genuinely certain
@@ -129,13 +129,17 @@ class QueryParser:
 
 ### Cuisine Type
 **Supported cuisines**: Italian, Indian, Chinese, American, Mexican
-**Note**: Extract these 5 supported cuisines when mentioned. If user mentions other cuisines, set cuisine_type to null.
+**Note**: ALWAYS extract ANY cuisine type mentioned, regardless of whether it's supported or not.
 **Important**: Always extract cuisine type when clearly mentioned, even if location is missing.
 **Mapping rules**:
 - "Tacos" → Mexican  
 - "Pasta" → Italian
 - "Curry" → Indian (unless context suggests otherwise)
 - "Dim sum" → Chinese
+- "Thai food" → Thai
+- "Japanese food" → Japanese
+- "Korean food" → Korean
+- "French food" → French
 
 ### Dish Name
 - Extract specific dish names, not general categories
@@ -330,7 +334,7 @@ Query: "{query}"
 Extract the following information based on the system guidelines:
 1. Location (city/neighborhood/landmark)
 2. Restaurant name (if specifically mentioned)
-3. Cuisine type (from the defined list)
+3. Cuisine type (ANY cuisine mentioned, not just supported ones)
 4. Dish name (specific dishes only)
 5. Meal type (breakfast/lunch/dinner/brunch/late-night/snacks/drinks)
 6. Price range preference (1-4 scale as defined)
@@ -558,7 +562,11 @@ Analyze the query context carefully and return the structured JSON response with
         """Extract cuisine type from query (expanded list)."""
         cuisines = {
                 "italian": "Italian", "indian": "Indian", "chinese": "Chinese",
-                "american": "American", "mexican": "Mexican"
+                "american": "American", "mexican": "Mexican",
+                "thai": "Thai", "japanese": "Japanese", "korean": "Korean", 
+                "french": "French", "vietnamese": "Vietnamese", "greek": "Greek",
+                "ethiopian": "Ethiopian", "mongolian": "Mongolian", "spanish": "Spanish",
+                "lebanese": "Lebanese", "turkish": "Turkish", "moroccan": "Moroccan"
         }
         
         for cuisine_key, cuisine_name in cuisines.items():
@@ -768,13 +776,10 @@ Analyze the query context carefully and return the structured JSON response with
                 # IMPORTANT: do NOT set unsupported locations to None here.
                 # Leave as-is so API validation can detect unsupported_location
         
-        # Validate cuisine type (expanded list)
+        # Validate cuisine type (expanded list) - PRESERVE unsupported cuisines for scope validation
         if parsed["cuisine_type"]:
-            valid_cuisines = [
-                 "Italian", "Indian", "Chinese", "American", "Mexican"
-            ]
-            if parsed["cuisine_type"] not in valid_cuisines:
-                parsed["cuisine_type"] = None
+            # Don't set unsupported cuisines to None - let scope validation handle them
+            pass
         
         # Validate price range
         if parsed["price_range"]:
@@ -1079,7 +1084,7 @@ Analyze the query context carefully and return the structured JSON response with
                 # Mark as unsupported for later handling
                 parsed_query["location_status"] = "unsupported"
                 parsed_query["original_location"] = original_location
-                parsed_query["location"] = None  # Clear location to trigger fallback
+                parsed_query["location"] = original_location  # ✅ PRESERVE original location for scope validation
             elif location_info.location_type == "unknown":
                 # Keep original but mark as uncertain
                 parsed_query["location_status"] = "unknown"

@@ -348,11 +348,15 @@ async def validate_query_scope(parsed_query: Dict[str, Any], original_query: str
     location = parsed_query.get('location')
     app_logger.info(f"🌍 Location check: '{location}' in supported cities {settings.supported_cities}")
     
-    # Extract base city from location (handle "City in Neighborhood" format)
-    base_city = None
-    neighborhood = None
-    if location:
-        # Split by " in " to extract city from "City in Neighborhood" format
+    # ✅ NEW: Simple check for missing/unsupported location
+    if not location:
+        # Location is None - trigger fallback
+        unsupported_location = "location_not_recognized"
+        app_logger.info(f"❌ Location not recognized in query: '{original_query}'")
+    else:
+        # Extract base city from location (handle "City in Neighborhood" format)
+        base_city = None
+        neighborhood = None
         if " in " in location:
             parts = location.split(" in ")
             base_city = parts[0].strip()

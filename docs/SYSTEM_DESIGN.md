@@ -8,8 +8,8 @@ flowchart TB
   %% LAYERS
   FE[["🌐 Frontend<br/>(Web UI)"]]
   API[["🚪 API Gateway<br/>(FastAPI + Security)"]]
-  QP[["🧠 Query Processing<br/>(Parser · Validation · Retrieval)"]]
-  GEN[["⚙️ Processing & Generation<br/>(Dish Extraction · Sentiment · LLM Responder)"]]
+  QP[["🧠 Query Processing<br/>(Parser · Validation · Retrieval · Fallback)"]]
+  GEN[["⚙️ Processing & Generation<br/>(Dish Extraction · Sentiment · LLM Responder · OpenAI Fallback)"]]
   VDB[["🗄️ Vector Database<br/>(Milvus on Zilliz)"]]
   DINF[["🏗️ Data Infrastructure<br/>(Collection · Redis Cache · Config)"]]
   EXT[["🌐 External Services<br/>(OpenAI · SerpAPI)"]]
@@ -42,4 +42,24 @@ flowchart TB
   class DINF infra
   class EXT ext
   class OBS obs
+
+## Fallback System Flow
+
+```mermaid
+flowchart TD
+  U[User Query] --> QP[Query Parser]
+  QP --> SV{Scope Validation}
+  
+  SV -->|Supported| VDB[Milvus Search]
+  SV -->|Unsupported| OF[OpenAI Fallback]
+  
+  VDB --> RR[Response Generation]
+  OF --> RR
+  
+  RR --> U[User Response]
+  
+  style SV fill:#fff3e0,stroke:#ef6c00
+  style OF fill:#fce4ec,stroke:#ad1457
+  style VDB fill:#ede7f6,stroke:#4527a0
+```
 ```

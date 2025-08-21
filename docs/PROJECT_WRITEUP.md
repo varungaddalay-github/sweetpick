@@ -1,9 +1,10 @@
 # Project Write-Up
 
 ## Purpose and expected outputs
-- Purpose: Help users discover the best dishes at top local restaurants using review intelligence and hybrid ranking across supported areas (e.g., Jersey City, Hoboken, Manhattan) and cuisines (Italian, Indian, Chinese, American, Mexican).
+- Purpose: Help users discover the best dishes at top local restaurants using review intelligence and hybrid ranking across supported areas (e.g., Jersey City, Hoboken, Manhattan) and cuisines (Italian, Indian, Chinese, American, Mexican), with intelligent fallback to OpenAI for unsupported locations and cuisines.
 - Expected outputs:
-  - Structured recommendations (dish + restaurant) ranked by hybrid scores.
+  - **Supported Scope**: Structured recommendations (dish + restaurant) ranked by hybrid scores from Milvus collections.
+  - **Unsupported Scope**: OpenAI-generated recommendations for locations/cuisines outside the supported scope.
   - A concise natural-language response summarizing the top picks.
   - Example output shape:
 ```json
@@ -56,6 +57,15 @@
   - Strict JSON/schema normalization: extract JSON from markdown-fenced responses; validate fields; coerce arrays for aspects; on parse failure, use regex fallback (`src/processing/dish_extractor.py`, `src/processing/sentiment_analyzer.py`, `src/query_processing/query_parser.py`).
   - Dish/sentiment constraints: reject single-ingredient or generic terms as dishes; clamp scores to valid ranges (`sentiment_score∈[-1,1]`, `confidence∈[0,1]`, `recommendation_score∈[0,1]`).
 
+## Intelligent Fallback System
+- **Scope Validation**: Automatically detects queries outside supported locations (Manhattan, Jersey City, Hoboken) and cuisines (Italian, Indian, Chinese, American, Mexican).
+- **OpenAI Fallback**: For unsupported scope, generates location-specific and cuisine-specific restaurant recommendations using GPT-4o.
+- **Fallback Scenarios**:
+  - **Unsupported Location**: "Italian food in Chicago" → OpenAI generates Chicago Italian restaurant recommendations
+  - **Unsupported Cuisine**: "Thai food in Manhattan" → OpenAI generates Manhattan Thai restaurant recommendations  
+  - **Both Unsupported**: "Japanese sushi in Chicago" → OpenAI generates comprehensive Chicago Japanese recommendations
+- **Implementation**: Query parser preserves original location/cuisine data, scope validation triggers appropriate fallback, OpenAI generates structured recommendations with natural language responses.
+
 ## Steps followed and challenges faced
 - Data collection and validation
   - Collect restaurants/reviews via SerpAPI; optional neighborhood search via Yelp.
@@ -78,6 +88,9 @@
 - Response generation and safety
   - Generate short, friendly responses with GPT; content/abuse protection and scope validation.
   - Challenge: Scope/cultural sensitivity; mitigation: pre-response validations and suggestions.
+- Fallback system implementation
+  - Query parser location resolution and cuisine extraction for unsupported scope detection.
+  - Challenge: Balancing supported vs. unsupported scope handling; mitigation: intelligent fallback to OpenAI with structured response generation.
 - Performance
   - Batching, caching, and rate limiting to control cost/latency.
   - Challenge: API quotas; mitigation: caching + backoffs and retries.

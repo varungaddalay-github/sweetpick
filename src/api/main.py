@@ -250,7 +250,7 @@ async def suggest_alternatives_with_choice(
             Instead, provide helpful recommendations FOR {unsupported_location} specifically.
             
             Response format:
-            1. Start with: "I don't have deep local insights for {unsupported_location}, but based on my knowledge, here are some great options:"
+            1. Start with: "I don't have deep local insights for the mentioned location, but based on my knowledge, here are some great options:"
             2. List 2-3 actual restaurants IN {unsupported_location} for: "{original_query}"
             3. Include restaurant names, specific dishes, and why they're good
             4. Focus on {unsupported_location} only - do not suggest other cities
